@@ -67,6 +67,17 @@ type Game struct {
 	LastShot     time.Time
 	LastUFOSpawn time.Time
 	NextExtraLifeScore int
+	Particles    []*Particle
+	RespawnTimer float64
+}
+
+type Particle struct {
+	Position      Vector2D
+	Velocity      Vector2D
+	Rotation      float64
+	RotationSpeed float64
+	Lifespan      float64
+	Length        float64
 }
 
 // A UFO (flying saucer)

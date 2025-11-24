@@ -39,6 +39,7 @@ func NewGame() *Game {
 		UFOBullets:   []*UFOBullet{},
 		LastUFOSpawn: time.Now(),
 		NextExtraLifeScore: 10000,
+		Particles:    []*Particle{},
 	}
 
 	g.Ship = &Ship{
@@ -138,17 +139,31 @@ func (g *Game) splitAsteroid(index int) {
 	}
 }
 
-func (g *Game) killShip() {
-	g.Lives--
-	if g.Lives <= 0 {
-		g.GameState = 1 // Game Over
-	} else {
-		g.Ship.Position = Vector2D{X: float64(ScreenWidth) / 2, Y: float64(ScreenHeight) / 2}
-		g.Ship.Velocity = Vector2D{0, 0}
-		g.Ship.Rotation = -math.Pi / 2
-		g.Ship.IsInvincible = true
-		g.Ship.InvincibleTimer = 3.0
+func (g *Game) spawnExplosion(pos Vector2D) {
+	for i := 0; i < 10; i++ {
+		angle := rand.Float64() * 2 * math.Pi
+		speed := rand.Float64() * 2.0
+		vel := Vector2D{X: math.Cos(angle) * speed, Y: math.Sin(angle) * speed}
+
+		g.Particles = append(g.Particles, &Particle{
+			Position:      pos,
+			Velocity:      vel,
+			Rotation:      rand.Float64() * 2 * math.Pi,
+			RotationSpeed: (rand.Float64() - 0.5) * 0.2,
+			Lifespan:      1.0 + rand.Float64(),
+			Length:        5.0 + rand.Float64()*10.0,
+		})
 	}
+}
+
+func (g *Game) killShip() {
+	if g.Ship == nil {
+		return
+	}
+	g.spawnExplosion(g.Ship.Position)
+	g.Ship = nil
+	g.Lives--
+	g.RespawnTimer = 2.0
 }
 
 func (g *Game) wrap(pos Vector2D) Vector2D {
@@ -174,6 +189,36 @@ func (g *Game) Update() error {
 			*g = *NewGame()
 		}
 		return nil
+	}
+
+	// Update Particles
+	for i := len(g.Particles) - 1; i >= 0; i-- {
+		p := g.Particles[i]
+		p.Position.X += p.Velocity.X
+		p.Position.Y += p.Velocity.Y
+		p.Rotation += p.RotationSpeed
+		p.Lifespan -= 1.0 / 60.0
+		if p.Lifespan <= 0 {
+			g.Particles = append(g.Particles[:i], g.Particles[i+1:]...)
+		}
+	}
+
+	// Respawn Timer
+	if g.RespawnTimer > 0 {
+		g.RespawnTimer -= 1.0 / 60.0
+		if g.RespawnTimer <= 0 {
+			if g.Lives > 0 {
+				// Respawn Ship
+				g.Ship = &Ship{
+					Position:        Vector2D{X: float64(ScreenWidth) / 2, Y: float64(ScreenHeight) / 2},
+					Rotation:        -math.Pi / 2,
+					IsInvincible:    true,
+					InvincibleTimer: 3.0,
+				}
+			} else {
+				g.GameState = 1 // Game Over
+			}
+		}
 	}
 
 	// 1. Update Ship
@@ -533,6 +578,21 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Draw UFOBullets
 	for _, b := range g.UFOBullets {
 		ebitenutil.DrawRect(screen, b.Position.X, b.Position.Y, 2, 2, c)
+	}
+
+	// Draw Particles
+	for _, p := range g.Particles {
+		x1 := p.Position.X - math.Cos(p.Rotation)*p.Length/2
+		y1 := p.Position.Y - math.Sin(p.Rotation)*p.Length/2
+		x2 := p.Position.X + math.Cos(p.Rotation)*p.Length/2
+		y2 := p.Position.Y + math.Sin(p.Rotation)*p.Length/2
+
+		alpha := uint8(255)
+		if p.Lifespan < 1.0 {
+			alpha = uint8(255 * p.Lifespan)
+		}
+		col := color.RGBA{255, 255, 255, alpha}
+		ebitenutil.DrawLine(screen, x1, y1, x2, y2, col)
 	}
 }
 
