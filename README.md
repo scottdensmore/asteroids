@@ -1,5 +1,7 @@
 # Asteroids Clone (Go with Ebitengine)
 
+![Gemini Arcade Machine](img/gemini.jpeg)
+
 This is a classic Asteroids arcade game clone implemented in Go using the Ebitengine (formerly Ebiten) game library. The project aims to replicate the look, feel, and core mechanics of the original 1979 game, including vector-style graphics, ship inertia, screen-wrapping, and splitting asteroids.
 
 This project was developed interactively using the Gemini CLI, leveraging the capabilities of Gemini 3 for code generation, modifications, and project management.
@@ -35,8 +37,3 @@ This project was developed interactively using the Gemini CLI, leveraging the ca
 *   **Up Arrow:** Thrust
 *   **Space:** Fire
 *   **Enter:** Restart Game (when Game Over)
-
-## Development Environment:
-This project was primarily developed and maintained through interactions with the Gemini CLI, powered by Gemini 3.
-
-![Gemini Arcade Machine](img/gemini.jpeg)
