@@ -22,14 +22,10 @@ This project was developed interactively using the Gemini CLI, leveraging the ca
 ## How to Run:
 
 1.  **Prerequisites**: Ensure you have Go installed (https://golang.golang.org/doc/install).
-2.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/scottdensmore/asteroids.git
-    cd asteroids
-    ```
+2.  
 3.  **Run the game**:
     ```bash
-    go run .
+    go run github.com/scottdensmore/asteroids
     ```
 
 ## Controls:
