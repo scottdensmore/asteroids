@@ -11,6 +11,7 @@ import (
 )
 
 const sampleRate = 44100
+const noiseEnvelopeDecayRate = 6.5
 
 type SoundManager struct {
 	ctx *audio.Context
@@ -249,7 +250,7 @@ func generateNoise(seconds float64, volume float64) []byte {
 	buf := bytes.NewBuffer(make([]byte, 0, count*2))
 
 	for i := 0; i < count; i++ {
-		envelope := math.Exp(-6.5 * float64(i) / float64(count))
+		envelope := math.Exp(-noiseEnvelopeDecayRate * float64(i) / float64(count))
 		noise := (mrand.Float64()*2 - 1) * volume * envelope
 		sample := int16(noise * math.MaxInt16)
 		_ = binary.Write(buf, binary.LittleEndian, sample)
