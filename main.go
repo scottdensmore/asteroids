@@ -192,9 +192,6 @@ func (g *Game) Update() error {
 			// Restart
 			*g = *NewGame()
 		}
-		if g.Sound != nil {
-			g.Sound.Update(g)
-		}
 		return nil
 	}
 

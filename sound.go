@@ -221,7 +221,7 @@ func generateTone(freq float64, seconds float64, volume float64, wave int, decay
 		t := float64(i) / sampleRate
 		amp := 1.0
 		if decay > 0 {
-			amp = math.Exp(-decay * float64(i))
+			amp = math.Exp(-decay * t)
 		}
 
 		phase := 2 * math.Pi * freq * t
