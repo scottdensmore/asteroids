@@ -18,6 +18,7 @@ This project was developed interactively using the Gemini CLI, leveraging the ca
 -   **Level Progression**: New levels start with more asteroids once the screen is clear.
 -   **Player Lives**: Start with 3-5 lives, gain an extra life every 10,000 points.
 -   **Ship Explosion**: When hit, the ship explodes into debris before respawning (if lives remain) or triggering Game Over.
+-   **Classic-Style Audio**: Procedurally generated retro tones for thrust, firing, asteroid hits, UFO activity, heartbeat pacing, and ship destruction.
 
 ## How to Run:
 
