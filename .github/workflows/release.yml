@@ -60,29 +60,59 @@ jobs:
             libxinerama-dev \
             libxrandr-dev \
             libxxf86vm-dev \
-            pkg-config
+            pkg-config \
+            xvfb
 
       - name: Download Go modules
         run: go mod download
 
       - name: Run tests
-        run: go test ./...
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            xvfb-run -a go test ./...
+          else
+            go test ./...
+          fi
+
+      - name: Prepare version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            tag="${{ inputs.tag }}"
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            tag="${{ github.ref_name }}"
+          else
+            tag="pr-${{ github.event.pull_request.number }}"
+          fi
+
+          version="${tag#v}"
+          commit="$(git rev-parse --short HEAD)"
+          build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "build_date=$build_date" >> "$GITHUB_OUTPUT"
 
       - name: Build binary
         shell: bash
         run: |
           mkdir -p dist package
-          go build -trimpath -ldflags="-s -w" -o "dist/${{ matrix.binary }}" .
+          go build -trimpath \
+            -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }} -X main.commit=${{ steps.version.outputs.commit }} -X main.buildDate=${{ steps.version.outputs.build_date }}" \
+            -o "dist/${{ matrix.binary }}" .
 
       - name: Package Unix binary
         if: runner.os != 'Windows'
         shell: bash
-        run: tar -C dist -czf "package/${{ matrix.package }}.tar.gz" "${{ matrix.binary }}"
+        run: tar -C dist -czf "package/${{ matrix.package }}-${{ steps.version.outputs.version }}.tar.gz" "${{ matrix.binary }}"
 
       - name: Package Windows binary
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path "dist/${{ matrix.binary }}" -DestinationPath "package/${{ matrix.package }}.zip"
+        run: Compress-Archive -Path "dist/${{ matrix.binary }}" -DestinationPath "package/${{ matrix.package }}-${{ steps.version.outputs.version }}.zip"
 
       - name: Upload package
         uses: actions/upload-artifact@v4
@@ -98,11 +128,27 @@ jobs:
     needs: build
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Download release packages
         uses: actions/download-artifact@v4
         with:
           path: release-assets
           merge-multiple: true
+
+      - name: Ensure release tag exists
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          if git show-ref --tags --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            exit 0
+          fi
+
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"
 
       - name: Create or update release
         env:
