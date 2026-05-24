@@ -31,15 +31,16 @@ const (
 
 func NewGame() *Game {
 	g := &Game{
-		ScreenWidth:  ScreenWidth,
-		ScreenHeight: ScreenHeight,
-		Lives:        3 + rand.Intn(3), // 3-5 lives
-		Level:        1,
-		UFOs:         []*UFO{},
-		UFOBullets:   []*UFOBullet{},
-		LastUFOSpawn: time.Now(),
+		ScreenWidth:        ScreenWidth,
+		ScreenHeight:       ScreenHeight,
+		Lives:              3 + rand.Intn(3), // 3-5 lives
+		Level:              1,
+		UFOs:               []*UFO{},
+		UFOBullets:         []*UFOBullet{},
+		LastUFOSpawn:       time.Now(),
 		NextExtraLifeScore: 10000,
-		Particles:    []*Particle{},
+		Particles:          []*Particle{},
+		Sound:              NewSoundManager(),
 	}
 
 	g.Ship = &Ship{
@@ -160,6 +161,9 @@ func (g *Game) killShip() {
 	if g.Ship == nil {
 		return
 	}
+	if g.Sound != nil {
+		g.Sound.PlayShipExplosion()
+	}
 	g.spawnExplosion(g.Ship.Position)
 	g.Ship = nil
 	g.Lives--
@@ -186,6 +190,9 @@ func (g *Game) Update() error {
 		// Game Over
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			// Restart
+			if g.Sound != nil {
+				g.Sound.Close()
+			}
 			*g = *NewGame()
 		}
 		return nil
@@ -269,6 +276,9 @@ func (g *Game) Update() error {
 				}
 				g.Bullets = append(g.Bullets, bullet)
 				g.LastShot = time.Now()
+				if g.Sound != nil {
+					g.Sound.PlayShipFire()
+				}
 			}
 		}
 	}
@@ -288,6 +298,9 @@ func (g *Game) Update() error {
 			a := g.Asteroids[j]
 			dist := math.Hypot(b.Position.X-a.Position.X, b.Position.Y-a.Position.Y)
 			if dist < a.Radius {
+				if g.Sound != nil {
+					g.Sound.PlayAsteroidHit(a.Size)
+				}
 				g.splitAsteroid(j)
 				g.Score += 100
 				hit = true
@@ -302,6 +315,9 @@ func (g *Game) Update() error {
 				dist := math.Hypot(b.Position.X-ufo.Position.X, b.Position.Y-ufo.Position.Y)
 				if dist < ufo.Radius {
 					g.Score += ufo.ScoreValue // Add UFO score
+					if g.Sound != nil {
+						g.Sound.PlayUFOHit(ufo.Size)
+					}
 					g.UFOs = append(g.UFOs[:j], g.UFOs[j+1:]...)
 					hit = true
 					break
@@ -442,6 +458,9 @@ func (g *Game) Update() error {
 					Lifespan: BulletLifespan,
 				})
 				ufo.LastShot = time.Now()
+				if g.Sound != nil {
+					g.Sound.PlayUFOFire()
+				}
 			}
 		}
 	}
@@ -470,7 +489,6 @@ func (g *Game) Update() error {
 		}
 	}
 
-
 	// 5. Level Progression
 	if len(g.Asteroids) == 0 && len(g.UFOs) == 0 {
 		g.Level++
@@ -484,6 +502,10 @@ func (g *Game) Update() error {
 			numAsteroids = 8 // Capped at 8 after 60k
 		}
 		g.spawnAsteroids(numAsteroids, 3)
+	}
+
+	if g.Sound != nil {
+		g.Sound.Update(g)
 	}
 
 	return nil

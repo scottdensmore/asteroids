@@ -53,22 +53,23 @@ type Bullet struct {
 
 // Main game state struct
 type Game struct {
-	Ship         *Ship
-	Asteroids    []*Asteroid
-	Bullets      []*Bullet
-	UFOs         []*UFO
-	UFOBullets   []*UFOBullet
-	Score        int
-	Lives        int
-	Level        int
-	ScreenWidth  int
-	ScreenHeight int
-	GameState    int // e.g., 0=Playing, 1=GameOver, 2=TitleScreen
-	LastShot     time.Time
-	LastUFOSpawn time.Time
+	Ship               *Ship
+	Asteroids          []*Asteroid
+	Bullets            []*Bullet
+	UFOs               []*UFO
+	UFOBullets         []*UFOBullet
+	Score              int
+	Lives              int
+	Level              int
+	ScreenWidth        int
+	ScreenHeight       int
+	GameState          int // e.g., 0=Playing, 1=GameOver, 2=TitleScreen
+	LastShot           time.Time
+	LastUFOSpawn       time.Time
 	NextExtraLifeScore int
-	Particles    []*Particle
-	RespawnTimer float64
+	Particles          []*Particle
+	RespawnTimer       float64
+	Sound              *SoundManager
 }
 
 type Particle struct {
@@ -96,4 +97,3 @@ type UFOBullet struct {
 	Velocity Vector2D
 	Lifespan float64 // Time in seconds before it disappears
 }
-
