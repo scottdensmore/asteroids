@@ -30,6 +30,7 @@ type SoundManager struct {
 
 	thrustPlayer *audio.Player
 	ufoPlayer    *audio.Player
+	oneShots     []*audio.Player
 	ufoLoopSize  int
 	nextBeat     time.Time
 	beatFlip     bool
@@ -66,6 +67,7 @@ func (sm *SoundManager) Update(g *Game) {
 	if sm == nil || g == nil {
 		return
 	}
+	sm.cleanupOneShots()
 
 	if g.GameState != 0 {
 		sm.stopThrust()
@@ -196,12 +198,38 @@ func (sm *SoundManager) stopUFOLoop() {
 	sm.ufoLoopSize = -1
 }
 
+func (sm *SoundManager) Close() {
+	if sm == nil {
+		return
+	}
+	sm.stopThrust()
+	sm.stopUFOLoop()
+	for _, p := range sm.oneShots {
+		p.Pause()
+		_ = p.Close()
+	}
+	sm.oneShots = nil
+}
+
 func (sm *SoundManager) play(sound []byte) {
 	if sm == nil || len(sound) == 0 {
 		return
 	}
 	p := sm.ctx.NewPlayerFromBytes(sound)
+	sm.oneShots = append(sm.oneShots, p)
 	p.Play()
+}
+
+func (sm *SoundManager) cleanupOneShots() {
+	active := sm.oneShots[:0]
+	for _, p := range sm.oneShots {
+		if p.IsPlaying() {
+			active = append(active, p)
+			continue
+		}
+		_ = p.Close()
+	}
+	sm.oneShots = active
 }
 
 const (

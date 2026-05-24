@@ -190,6 +190,9 @@ func (g *Game) Update() error {
 		// Game Over
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			// Restart
+			if g.Sound != nil {
+				g.Sound.Close()
+			}
 			*g = *NewGame()
 		}
 		return nil
