@@ -41,7 +41,27 @@ func NewGame() *Game {
 		NextExtraLifeScore: 10000,
 		Particles:          []*Particle{},
 		Sound:              NewSoundManager(),
+		GameState:          2,
 	}
+
+	return g
+}
+
+func (g *Game) resetPlayfield() {
+	g.Ship = nil
+	g.Asteroids = []*Asteroid{}
+	g.Bullets = []*Bullet{}
+	g.UFOs = []*UFO{}
+	g.UFOBullets = []*UFOBullet{}
+	g.Score = 0
+	g.Lives = 3 + rand.Intn(3) // 3-5 lives
+	g.Level = 1
+	g.LastShot = time.Time{}
+	g.LastUFOSpawn = time.Now()
+	g.NextExtraLifeScore = 10000
+	g.Particles = []*Particle{}
+	g.RespawnTimer = 0
+	g.GameState = 0
 
 	g.Ship = &Ship{
 		Position: Vector2D{X: float64(ScreenWidth) / 2, Y: float64(ScreenHeight) / 2},
@@ -49,7 +69,6 @@ func NewGame() *Game {
 	}
 
 	g.spawnAsteroids(4, 3) // 4 Large asteroids
-	return g
 }
 
 func (g *Game) spawnAsteroids(count int, size int) {
@@ -186,6 +205,13 @@ func (g *Game) wrap(pos Vector2D) Vector2D {
 }
 
 func (g *Game) Update() error {
+	if g.GameState == 2 {
+		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+			g.resetPlayfield()
+		}
+		return nil
+	}
+
 	if g.GameState == 1 {
 		// Game Over
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
@@ -194,6 +220,7 @@ func (g *Game) Update() error {
 				g.Sound.Close()
 			}
 			*g = *NewGame()
+			g.resetPlayfield()
 		}
 		return nil
 	}
@@ -512,8 +539,15 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.GameState == 2 {
+		ebitenutil.DebugPrintAt(screen, "ASTEROIDS", ScreenWidth/2-36, ScreenHeight/2-48)
+		ebitenutil.DebugPrintAt(screen, "Press Enter to Start", ScreenWidth/2-76, ScreenHeight/2-12)
+		ebitenutil.DebugPrintAt(screen, "Version "+displayVersion(), ScreenWidth/2-44, ScreenHeight/2+24)
+		return
+	}
+
 	if g.GameState == 1 {
-		ebitenutil.DebugPrint(screen, "GAME OVER\nPress Enter to Restart")
+		ebitenutil.DebugPrint(screen, "GAME OVER\nPress Enter for New Game\n"+buildInfo())
 		return
 	}
 
@@ -625,7 +659,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	ebiten.SetWindowSize(ScreenWidth, ScreenHeight)
-	ebiten.SetWindowTitle("Asteroids Clone")
+	ebiten.SetWindowTitle("Asteroids Clone " + displayVersion())
 
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		log.Fatal(err)
