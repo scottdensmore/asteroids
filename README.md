@@ -32,10 +32,11 @@ This project was developed interactively using the Gemini CLI, leveraging the ca
 ## Releases:
 
 Release builds are produced by the GitHub Actions release workflow for Linux,
-macOS, and Windows. Push a `v*` tag, or run the workflow manually with a tag
-such as `v1.0.0`; the workflow injects that version into the game, creates
-versioned platform packages, ensures the tag exists, and publishes the GitHub
-release after all platform builds pass.
+macOS, and Windows. Pushes to `main` automatically publish a GitHub Release
+with a run-number tag such as `v0.0.42`. You can also push a `v*` tag, or run
+the workflow manually with a tag such as `v1.0.0`; the workflow injects that
+version into the game, creates versioned platform packages, ensures the tag
+exists, and publishes the GitHub release after all platform builds pass.
 
 ## Controls:
 *   **Left / Right Arrow:** Rotate Ship

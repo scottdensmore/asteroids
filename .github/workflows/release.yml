@@ -5,6 +5,8 @@ on:
     branches:
       - main
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -83,6 +85,8 @@ jobs:
             tag="${{ inputs.tag }}"
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
             tag="${{ github.ref_name }}"
+          elif [[ "${{ github.ref_type }}" == "branch" ]]; then
+            tag="v0.0.${{ github.run_number }}"
           else
             tag="pr-${{ github.event.pull_request.number }}"
           fi
@@ -91,10 +95,12 @@ jobs:
           commit="$(git rev-parse --short HEAD)"
           build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "commit=$commit" >> "$GITHUB_OUTPUT"
-          echo "build_date=$build_date" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=$tag"
+            echo "version=$version"
+            echo "commit=$commit"
+            echo "build_date=$build_date"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build binary
         shell: bash
@@ -141,7 +147,7 @@ jobs:
 
       - name: Ensure release tag exists
         env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || (github.ref_type == 'tag' && github.ref_name || format('v0.0.{0}', github.run_number)) }}
         run: |
           if git show-ref --tags --verify --quiet "refs/tags/$RELEASE_TAG"; then
             exit 0
@@ -153,7 +159,7 @@ jobs:
       - name: Create or update release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || (github.ref_type == 'tag' && github.ref_name || format('v0.0.{0}', github.run_number)) }}
         run: |
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
@@ -162,5 +168,6 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
               --title "$RELEASE_TAG" \
-              --generate-notes
+              --generate-notes \
+              --latest
           fi
