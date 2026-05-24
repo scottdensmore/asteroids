@@ -36,8 +36,13 @@ type SoundManager struct {
 }
 
 func NewSoundManager() *SoundManager {
+	ctx := audio.CurrentContext()
+	if ctx == nil {
+		ctx = audio.NewContext(sampleRate)
+	}
+
 	sm := &SoundManager{
-		ctx:         audio.NewContext(sampleRate),
+		ctx:         ctx,
 		ufoLoopSize: -1,
 	}
 
@@ -148,10 +153,7 @@ func (sm *SoundManager) startThrust() {
 		_ = sm.thrustPlayer.Close()
 		sm.thrustPlayer = nil
 	}
-	player, err := sm.ctx.NewPlayerFromBytes(sm.thrust)
-	if err != nil {
-		return
-	}
+	player := sm.ctx.NewPlayerFromBytes(sm.thrust)
 	sm.thrustPlayer = player
 	player.Play()
 }
@@ -177,10 +179,7 @@ func (sm *SoundManager) startUFOLoop(size int) {
 	} else {
 		sound = sm.ufoBig
 	}
-	player, err := sm.ctx.NewPlayerFromBytes(sound)
-	if err != nil {
-		return
-	}
+	player := sm.ctx.NewPlayerFromBytes(sound)
 	sm.ufoPlayer = player
 	sm.ufoLoopSize = size
 	player.Play()
@@ -201,10 +200,7 @@ func (sm *SoundManager) play(sound []byte) {
 	if sm == nil || len(sound) == 0 {
 		return
 	}
-	p, err := sm.ctx.NewPlayerFromBytes(sound)
-	if err != nil {
-		return
-	}
+	p := sm.ctx.NewPlayerFromBytes(sound)
 	p.Play()
 }
 

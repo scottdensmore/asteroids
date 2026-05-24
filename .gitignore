@@ -12,4 +12,3 @@
 
 # Standard ignore for Go modules
 /vendor/
-go.sum
