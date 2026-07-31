@@ -40,6 +40,8 @@ type SoundManager struct {
 	nextBeat     time.Time
 	quietUntil   time.Time
 	beatFlip     bool
+	beatLevel    int
+	levelStarted time.Time
 }
 
 func NewSoundManager() *SoundManager {
@@ -83,6 +85,13 @@ func (sm *SoundManager) Update(g *Game) {
 		return
 	}
 
+	// A new level restarts the heartbeat at its slowest.
+	if g.Level != sm.beatLevel {
+		sm.beatLevel = g.Level
+		sm.levelStarted = now
+		sm.nextBeat = now.Add(beatSlowestInterval)
+	}
+
 	if now.Before(sm.quietUntil) {
 		sm.stopThrust()
 		sm.stopUFOLoop()
@@ -120,12 +129,7 @@ func (sm *SoundManager) Update(g *Game) {
 		}
 		sm.beatFlip = !sm.beatFlip
 
-		remaining := len(g.Asteroids)
-		interval := 250 + remaining*70
-		if interval > 900 {
-			interval = 900
-		}
-		sm.nextBeat = now.Add(time.Duration(interval) * time.Millisecond)
+		sm.nextBeat = now.Add(beatInterval(now.Sub(sm.levelStarted)))
 	}
 }
 
@@ -287,6 +291,29 @@ const (
 	saucerPulseSeconds = 0.18
 	saucerGateSeconds  = 0.12
 )
+
+// Heartbeat pacing. The arcade beat opens slow at the top of a level and
+// tightens as the level runs, holding at its fastest once the ramp is spent.
+const (
+	beatSlowestInterval = 900 * time.Millisecond
+	beatFastestInterval = 250 * time.Millisecond
+	beatRampDuration    = 45 * time.Second
+)
+
+// beatInterval returns the gap between heartbeat thumps for a level that has
+// been running for elapsed.
+func beatInterval(elapsed time.Duration) time.Duration {
+	if elapsed <= 0 {
+		return beatSlowestInterval
+	}
+	if elapsed >= beatRampDuration {
+		return beatFastestInterval
+	}
+
+	progress := float64(elapsed) / float64(beatRampDuration)
+	spread := float64(beatSlowestInterval - beatFastestInterval)
+	return beatSlowestInterval - time.Duration(spread*progress)
+}
 
 // frameCountFor rounds a duration to whole frames. Truncating instead would
 // drop the last frame whenever a computed duration lands a hair below its exact

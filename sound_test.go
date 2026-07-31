@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 	"testing"
+	"time"
 )
 
 func frameCount(buf []byte) int {
@@ -182,4 +183,47 @@ func TestThrustLoopSpansWholeCycles(t *testing.T) {
 	seconds := bufferSeconds(generateThrust())
 	wholeCycles(t, "thrust carrier", snapFreq(thrustCarrierHz, seconds), seconds)
 	wholeCycles(t, "thrust flutter", snapFreq(thrustFlutterHz, seconds), seconds)
+}
+
+// The arcade heartbeat starts slow at the top of a level and tightens steadily
+// as the level runs, rather than tracking how many asteroids are left.
+
+func TestBeatIntervalStartsSlowest(t *testing.T) {
+	if got := beatInterval(0); got != beatSlowestInterval {
+		t.Fatalf("beatInterval(0) = %v, want %v", got, beatSlowestInterval)
+	}
+}
+
+func TestBeatIntervalReachesFastestAtEndOfRamp(t *testing.T) {
+	if got := beatInterval(beatRampDuration); got != beatFastestInterval {
+		t.Fatalf("beatInterval(ramp) = %v, want %v", got, beatFastestInterval)
+	}
+}
+
+func TestBeatIntervalHoldsFastestAfterRamp(t *testing.T) {
+	if got := beatInterval(3 * beatRampDuration); got != beatFastestInterval {
+		t.Fatalf("beatInterval(3x ramp) = %v, want %v to hold", got, beatFastestInterval)
+	}
+}
+
+func TestBeatIntervalNeverSlowsDown(t *testing.T) {
+	previous := beatInterval(0)
+	for step := 1; step <= 40; step++ {
+		elapsed := time.Duration(step) * beatRampDuration / 20
+		got := beatInterval(elapsed)
+		if got > previous {
+			t.Fatalf("beatInterval(%v) = %v, slower than the preceding %v", elapsed, got, previous)
+		}
+		previous = got
+	}
+}
+
+func TestBeatIntervalTightensSteadily(t *testing.T) {
+	// Halfway through the ramp the beat should sit halfway between the two ends.
+	want := beatSlowestInterval - (beatSlowestInterval-beatFastestInterval)/2
+	got := beatInterval(beatRampDuration / 2)
+
+	if diff := got - want; diff > time.Millisecond || diff < -time.Millisecond {
+		t.Fatalf("beatInterval(half ramp) = %v, want about %v", got, want)
+	}
 }
