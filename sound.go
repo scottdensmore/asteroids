@@ -55,10 +55,10 @@ func NewSoundManager() *SoundManager {
 		ufoLoopSize: -1,
 	}
 
-	sm.fire = generateSweep(1250, 620, 0.09, 0.28, waveSquare, 18.0)
+	sm.fire = generateSweep(fireStartHz, fireEndHz, fireSeconds, 0.28, waveSquare, 14.0)
 	sm.thrust = generateThrust()
-	sm.beat1 = generateTone(110, 0.09, 0.28, waveSquare, 0.03)
-	sm.beat2 = generateTone(82, 0.09, 0.30, waveSquare, 0.03)
+	sm.beat1 = generateTone(beat1Hz, 0.09, 0.28, waveSquare, 0.03)
+	sm.beat2 = generateTone(beat2Hz, 0.09, 0.30, waveSquare, 0.03)
 	sm.bangSmall = generateExplosion(0.14, 0.34, 190, 90)
 	sm.bangMed = generateExplosion(0.22, 0.42, 130, 55)
 	sm.bangLarge = generateExplosion(0.32, 0.48, 90, 32)
@@ -292,12 +292,28 @@ const (
 	saucerGateSeconds  = 0.12
 )
 
-// Heartbeat pacing. The arcade beat opens slow at the top of a level and
-// tightens as the level runs, holding at its fastest once the ramp is spent.
+// Heartbeat pacing, measured from arcade gameplay footage. The beat opens slow
+// at the top of a level and tightens as the level runs, holding at its fastest
+// once the ramp is spent. The three cleanest isolated gaps at level start were
+// 842, 839 and 835 ms, and a fit over 34 alternating gaps gave -12.6 ms per
+// second. The floor is extrapolated: the footage only reached about 410 ms.
 const (
-	beatSlowestInterval = 900 * time.Millisecond
+	beatSlowestInterval = 845 * time.Millisecond
 	beatFastestInterval = 250 * time.Millisecond
-	beatRampDuration    = 45 * time.Second
+	beatRampDuration    = 47 * time.Second
+)
+
+// Measured arcade pitches. The heartbeat alternates two low tones, and the ship
+// fire is a steady downward sweep of a little over an octave.
+const (
+	beat1Hz = 89.6
+	beat2Hz = 69.2
+
+	// Fine frequency tracking over the cleanest shots fitted a linear descent
+	// from about 800 Hz at roughly 2360 Hz per second, lasting some 183 ms.
+	fireStartHz = 800.0
+	fireEndHz   = 365.0
+	fireSeconds = 0.183
 )
 
 // beatInterval returns the gap between heartbeat thumps for a level that has

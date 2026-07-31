@@ -227,3 +227,64 @@ func TestBeatIntervalTightensSteadily(t *testing.T) {
 		t.Fatalf("beatInterval(half ramp) = %v, want about %v", got, want)
 	}
 }
+
+// Tuning below is measured from arcade gameplay footage rather than picked by
+// ear. These tests pin the relationships that measurement established, so a
+// later tweak that breaks them is deliberate rather than accidental.
+
+func TestBeatTonesKeepMeasuredSeparation(t *testing.T) {
+	// 72 heartbeat events measured 89.6 Hz and 69.2 Hz, a ratio of 1.295.
+	ratio := beat1Hz / beat2Hz
+	if ratio < 1.25 || ratio > 1.34 {
+		t.Fatalf("beat tone ratio %.4f (%.1f/%.1f Hz), want about 1.295", ratio, beat1Hz, beat2Hz)
+	}
+}
+
+func TestBeatTonesSitInMeasuredRange(t *testing.T) {
+	// Both tones sit low; the pre-measurement values of 110/82 Hz were too high.
+	for name, hz := range map[string]float64{"beat1": beat1Hz, "beat2": beat2Hz} {
+		if hz < 60 || hz > 95 {
+			t.Errorf("%s = %.1f Hz, outside the measured 60-95 Hz band", name, hz)
+		}
+	}
+}
+
+func TestBeatRampMatchesMeasuredRate(t *testing.T) {
+	// A linear fit over 34 alternating beat gaps gave -12.6 ms per second.
+	const measured = 12.6
+
+	spread := float64(beatSlowestInterval-beatFastestInterval) / float64(time.Millisecond)
+	seconds := float64(beatRampDuration) / float64(time.Second)
+	rate := spread / seconds
+
+	if rate < measured-1 || rate > measured+1 {
+		t.Fatalf("ramp tightens %.2f ms/s, want about %.1f ms/s", rate, measured)
+	}
+}
+
+func TestBeatOpensAtMeasuredInterval(t *testing.T) {
+	// The three cleanest isolated gaps at level start were 842, 839 and 835 ms.
+	got := float64(beatInterval(0)) / float64(time.Millisecond)
+	if got < 800 || got > 880 {
+		t.Fatalf("beat opens at %.0fms, want about 840ms", got)
+	}
+}
+
+// The fire sweep is pinned by its rate of descent rather than its endpoints.
+// A coarse analysis window pulls both ends toward the middle, so endpoints read
+// differently depending on how they are measured; the slope survives that.
+func TestFireSweepDescendsAtMeasuredRate(t *testing.T) {
+	// Linear fits over the cleanest shots gave -2259 and -2459 Hz per second.
+	const measured = 2360.0
+
+	rate := (fireStartHz - fireEndHz) / fireSeconds
+	if rate < measured-250 || rate > measured+250 {
+		t.Fatalf("fire sweeps at %.0f Hz/s, want about %.0f Hz/s", rate, measured)
+	}
+	if fireStartHz < 750 || fireStartHz > 850 {
+		t.Errorf("fire starts at %.0f Hz, outside the measured 750-850 Hz range", fireStartHz)
+	}
+	if fireSeconds < 0.15 || fireSeconds > 0.22 {
+		t.Errorf("fire lasts %.3fs, outside the measured range around 0.183s", fireSeconds)
+	}
+}
