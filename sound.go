@@ -31,6 +31,7 @@ type SoundManager struct {
 	ufoSmall  []byte
 	ufoFire   []byte
 	shipBoom  []byte
+	extraLife []byte
 
 	thrustPlayer *audio.Player
 	ufoPlayer    *audio.Player
@@ -63,6 +64,7 @@ func NewSoundManager() *SoundManager {
 	sm.ufoSmall = generateSaucerLoop(315, 235, 0.66, 0.14)
 	sm.ufoFire = generateSweep(980, 420, 0.08, 0.24, waveSquare, 16.0)
 	sm.shipBoom = generateShipExplosion()
+	sm.extraLife = generateExtraLife()
 	sm.nextBeat = time.Now().Add(700 * time.Millisecond)
 
 	return sm
@@ -133,6 +135,10 @@ func (sm *SoundManager) PlayShipFire() {
 
 func (sm *SoundManager) PlayUFOFire() {
 	sm.play(sm.ufoFire)
+}
+
+func (sm *SoundManager) PlayExtraLife() {
+	sm.play(sm.extraLife)
 }
 
 func (sm *SoundManager) PlayShipExplosion() {
@@ -428,6 +434,14 @@ func generateExplosion(seconds float64, volume float64, startRumble float64, end
 	}
 
 	return buf.Bytes()
+}
+
+// generateExtraLife is the free ship award: a rising two-step chime, pitched
+// clear of the fire blip and the beat so it reads over whatever else is playing.
+func generateExtraLife() []byte {
+	low := generateTone(660, 0.10, 0.26, waveSquare, 1.2)
+	high := generateTone(990, 0.14, 0.26, waveSquare, 1.6)
+	return append(low, high...)
 }
 
 func generateShipExplosion() []byte {

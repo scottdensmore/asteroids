@@ -34,6 +34,7 @@ func generatedSounds(t *testing.T) map[string][]byte {
 		"saucerLoop":    generateSaucerLoop(150, 108, 0.5, 0.2),
 		"explosion":     generateExplosion(0.25, 0.4, 120, 50),
 		"shipExplosion": generateShipExplosion(),
+		"extraLife":     generateExtraLife(),
 	}
 }
 
