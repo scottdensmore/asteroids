@@ -19,6 +19,9 @@ const (
 	BulletSpeed    = 4.0
 	BulletLifespan = 1.0 // Seconds
 
+	// Score awarded between free ships
+	ExtraLifeInterval = 10000
+
 	// UFO constants
 	UFOSpawnInterval = 10 * time.Second
 	BigUFORadius     = 20.0
@@ -38,7 +41,7 @@ func NewGame() *Game {
 		UFOs:               []*UFO{},
 		UFOBullets:         []*UFOBullet{},
 		LastUFOSpawn:       time.Now(),
-		NextExtraLifeScore: 10000,
+		NextExtraLifeScore: ExtraLifeInterval,
 		Particles:          []*Particle{},
 		Sound:              NewSoundManager(),
 		GameState:          2,
@@ -58,7 +61,7 @@ func (g *Game) resetPlayfield() {
 	g.Level = 1
 	g.LastShot = time.Time{}
 	g.LastUFOSpawn = time.Now()
-	g.NextExtraLifeScore = 10000
+	g.NextExtraLifeScore = ExtraLifeInterval
 	g.Particles = []*Particle{}
 	g.RespawnTimer = 0
 	g.GameState = 0
@@ -187,6 +190,19 @@ func (g *Game) killShip() {
 	g.Ship = nil
 	g.Lives--
 	g.RespawnTimer = 2.0
+}
+
+// grantExtraLives awards a free ship for every extra-life threshold the score
+// has crossed and returns how many were granted, so a single high-value kill
+// that jumps several thresholds pays out in full.
+func (g *Game) grantExtraLives() int {
+	granted := 0
+	for g.Score >= g.NextExtraLifeScore {
+		g.Lives++
+		g.NextExtraLifeScore += ExtraLifeInterval
+		granted++
+	}
+	return granted
 }
 
 func (g *Game) wrap(pos Vector2D) Vector2D {
@@ -375,9 +391,8 @@ func (g *Game) Update() error {
 	}
 
 	// Grant extra life
-	if g.Score >= g.NextExtraLifeScore {
-		g.Lives++
-		g.NextExtraLifeScore += 10000 // Increment for the next 10,000 points
+	if g.grantExtraLives() > 0 && g.Sound != nil {
+		g.Sound.PlayExtraLife()
 	}
 
 	// 4. Update UFOs and UFOBullets
