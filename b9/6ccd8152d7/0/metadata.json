@@ -1,0 +1,84 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "b96ccd8152d7",
+  "session_id": "54e44017-099e-4a69-bd34-7be106cfa694",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-31T02:00:56.94508Z",
+  "branch": "scottdensmore/feat/arcade-measured-tuning",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "sound.go",
+    "sound_test.go"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "6e88e16225a4",
+  "checkpoint_transcript_start": 421,
+  "transcript_lines_at_start": 421,
+  "compact_transcript_start": 113,
+  "token_usage": {
+    "input_tokens": 63,
+    "cache_creation_tokens": 53716,
+    "cache_read_tokens": 6924395,
+    "output_tokens": 35784,
+    "api_call_count": 34
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-loop-2026-07-31T01:26:16.154494Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "loop"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "0d4676b01f8b",
+      "timestamp": "2026-07-31T01:26:16.154494Z",
+      "native": {
+        "command": "/loop"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/loop",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-31T02:00:56.783511Z",
+    "agent_lines": 84,
+    "agent_removed": 7,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 84,
+    "total_lines_changed": 91,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 237,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/agents/entire-search.md": 25,
+        ".claude/scheduled_tasks.lock": 1,
+        ".claude/settings.json": 84,
+        ".codex/agents/entire-search.toml": 23,
+        ".codex/config.toml": 3,
+        ".codex/hooks.json": 40,
+        ".github/hooks/entire.json": 61
+      }
+    }
+  ]
+}

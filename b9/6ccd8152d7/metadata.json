@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "b96ccd8152d7",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/feat/arcade-measured-tuning",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "sound.go",
+    "sound_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b9/6ccd8152d7/0/metadata.json",
+      "transcript": "/b9/6ccd8152d7/0/full.jsonl",
+      "compact_transcript": "/b9/6ccd8152d7/0/transcript.jsonl",
+      "content_hash": "/b9/6ccd8152d7/0/content_hash.txt",
+      "prompt": "/b9/6ccd8152d7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 63,
+    "cache_creation_tokens": 53716,
+    "cache_read_tokens": 6924395,
+    "output_tokens": 35784,
+    "api_call_count": 34
+  }
+}
