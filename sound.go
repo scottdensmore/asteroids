@@ -11,7 +11,6 @@ import (
 )
 
 const sampleRate = 44100
-const noiseEnvelopeDecayRate = 6.5
 
 type SoundManager struct {
 	ctx *audio.Context
@@ -33,6 +32,7 @@ type SoundManager struct {
 	oneShots     []*audio.Player
 	ufoLoopSize  int
 	nextBeat     time.Time
+	quietUntil   time.Time
 	beatFlip     bool
 }
 
@@ -47,17 +47,17 @@ func NewSoundManager() *SoundManager {
 		ufoLoopSize: -1,
 	}
 
-	sm.fire = generateTone(880, 0.08, 0.25, waveSquare, 0.06)
-	sm.thrust = generateTone(95, 0.15, 0.15, waveSaw, 0.00)
+	sm.fire = generateSweep(1250, 620, 0.09, 0.28, waveSquare, 18.0)
+	sm.thrust = generateThrust()
 	sm.beat1 = generateTone(110, 0.09, 0.28, waveSquare, 0.03)
 	sm.beat2 = generateTone(82, 0.09, 0.30, waveSquare, 0.03)
-	sm.bangSmall = generateNoise(0.12, 0.24)
-	sm.bangMed = generateNoise(0.18, 0.30)
-	sm.bangLarge = generateNoise(0.25, 0.35)
-	sm.ufoBig = generateTone(170, 0.22, 0.14, waveSquare, 0.00)
-	sm.ufoSmall = generateTone(285, 0.18, 0.12, waveSquare, 0.00)
-	sm.ufoFire = generateTone(760, 0.07, 0.20, waveSquare, 0.05)
-	sm.shipBoom = generateNoise(0.30, 0.40)
+	sm.bangSmall = generateExplosion(0.14, 0.34, 190, 90)
+	sm.bangMed = generateExplosion(0.22, 0.42, 130, 55)
+	sm.bangLarge = generateExplosion(0.32, 0.48, 90, 32)
+	sm.ufoBig = generateSaucerLoop(150, 108, 0.86, 0.16)
+	sm.ufoSmall = generateSaucerLoop(315, 235, 0.66, 0.14)
+	sm.ufoFire = generateSweep(980, 420, 0.08, 0.24, waveSquare, 16.0)
+	sm.shipBoom = generateShipExplosion()
 	sm.nextBeat = time.Now().Add(700 * time.Millisecond)
 
 	return sm
@@ -69,7 +69,14 @@ func (sm *SoundManager) Update(g *Game) {
 	}
 	sm.cleanupOneShots()
 
+	now := time.Now()
 	if g.GameState != 0 {
+		sm.stopThrust()
+		sm.stopUFOLoop()
+		return
+	}
+
+	if now.Before(sm.quietUntil) {
 		sm.stopThrust()
 		sm.stopUFOLoop()
 		return
@@ -98,7 +105,6 @@ func (sm *SoundManager) Update(g *Game) {
 		sm.stopUFOLoop()
 	}
 
-	now := time.Now()
 	if !now.Before(sm.nextBeat) {
 		if sm.beatFlip {
 			sm.play(sm.beat2)
@@ -125,6 +131,9 @@ func (sm *SoundManager) PlayUFOFire() {
 }
 
 func (sm *SoundManager) PlayShipExplosion() {
+	sm.quietUntil = time.Now().Add(650 * time.Millisecond)
+	sm.stopThrust()
+	sm.stopUFOLoop()
 	sm.play(sm.shipBoom)
 }
 
@@ -269,16 +278,136 @@ func generateTone(freq float64, seconds float64, volume float64, wave int, decay
 	return buf.Bytes()
 }
 
-func generateNoise(seconds float64, volume float64) []byte {
+func generateSweep(startFreq float64, endFreq float64, seconds float64, volume float64, wave int, decay float64) []byte {
 	count := int(float64(sampleRate) * seconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*2))
 
+	phase := 0.0
 	for i := 0; i < count; i++ {
-		envelope := math.Exp(-noiseEnvelopeDecayRate * float64(i) / float64(count))
-		noise := (mrand.Float64()*2 - 1) * volume * envelope
-		sample := int16(noise * math.MaxInt16)
-		_ = binary.Write(buf, binary.LittleEndian, sample)
+		progress := float64(i) / float64(count)
+		t := float64(i) / sampleRate
+		freq := startFreq + (endFreq-startFreq)*progress
+		phase += 2 * math.Pi * freq / sampleRate
+		amp := math.Exp(-decay * t)
+
+		v := sampleWave(phase, wave)
+		writeSample(buf, v*volume*amp)
 	}
 
 	return buf.Bytes()
+}
+
+func generateThrust() []byte {
+	count := int(float64(sampleRate) * 0.18)
+	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+
+	phase := 0.0
+	for i := 0; i < count; i++ {
+		t := float64(i) / sampleRate
+		phase += 2 * math.Pi * 78 / sampleRate
+		flutter := 0.75 + 0.25*math.Sin(2*math.Pi*22*t)
+		noise := (mrand.Float64()*2 - 1) * 0.18
+		rumble := sampleWave(phase, waveSaw) * 0.30
+		writeSample(buf, (rumble+noise)*flutter)
+	}
+
+	return buf.Bytes()
+}
+
+func generateSaucerLoop(highFreq float64, lowFreq float64, seconds float64, volume float64) []byte {
+	count := int(float64(sampleRate) * seconds)
+	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+
+	phase := 0.0
+	for i := 0; i < count; i++ {
+		t := float64(i) / sampleRate
+		pulse := math.Mod(t, 0.18)
+		freq := lowFreq
+		if pulse < 0.09 {
+			freq = highFreq
+		}
+		phase += 2 * math.Pi * freq / sampleRate
+		gate := 0.35
+		if pulse < 0.12 {
+			gate = 1.0
+		}
+		writeSample(buf, sampleWave(phase, waveSquare)*volume*gate)
+	}
+
+	return buf.Bytes()
+}
+
+func generateExplosion(seconds float64, volume float64, startRumble float64, endRumble float64) []byte {
+	count := int(float64(sampleRate) * seconds)
+	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+
+	phase := 0.0
+	for i := 0; i < count; i++ {
+		progress := float64(i) / float64(count)
+		t := float64(i) / sampleRate
+		freq := startRumble + (endRumble-startRumble)*progress
+		phase += 2 * math.Pi * freq / sampleRate
+
+		envelope := math.Exp(-5.4 * t / seconds)
+		crackle := (mrand.Float64()*2 - 1) * envelope
+		rumble := sampleWave(phase, waveSquare) * envelope * 0.42
+		writeSample(buf, (crackle+rumble)*volume)
+	}
+
+	return buf.Bytes()
+}
+
+func generateShipExplosion() []byte {
+	seconds := 0.62
+	count := int(float64(sampleRate) * seconds)
+	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+
+	rumblePhase := 0.0
+	whinePhase := 0.0
+	for i := 0; i < count; i++ {
+		progress := float64(i) / float64(count)
+		t := float64(i) / sampleRate
+
+		rumbleFreq := 88 - 54*progress
+		whineFreq := 520 * math.Pow(0.20, progress)
+		rumblePhase += 2 * math.Pi * rumbleFreq / sampleRate
+		whinePhase += 2 * math.Pi * whineFreq / sampleRate
+
+		crackEnvelope := math.Exp(-12.0 * t)
+		bodyEnvelope := math.Exp(-3.6 * t)
+		tailEnvelope := math.Exp(-5.2 * t)
+
+		crack := (mrand.Float64()*2 - 1) * 0.88 * crackEnvelope
+		body := sampleWave(rumblePhase, waveSquare) * 0.44 * bodyEnvelope
+		fallingWhine := sampleWave(whinePhase, waveSaw) * 0.34 * tailEnvelope
+		dust := (mrand.Float64()*2 - 1) * 0.22 * bodyEnvelope
+
+		writeSample(buf, crack+body+fallingWhine+dust)
+	}
+
+	return buf.Bytes()
+}
+
+func sampleWave(phase float64, wave int) float64 {
+	switch wave {
+	case waveSaw:
+		cycle := math.Mod(phase/(2*math.Pi), 1)
+		return 2 * (cycle - math.Floor(0.5+cycle))
+	default:
+		if math.Sin(phase) >= 0 {
+			return 1
+		}
+		return -1
+	}
+}
+
+func writeSample(buf *bytes.Buffer, value float64) {
+	if value > 1 {
+		value = 1
+	} else if value < -1 {
+		value = -1
+	}
+
+	sample := int16(value * math.MaxInt16)
+	_ = binary.Write(buf, binary.LittleEndian, sample)
 }
