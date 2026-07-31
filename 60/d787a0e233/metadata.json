@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "60d787a0e233",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/feat/heartbeat-tempo",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "sound.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/60/d787a0e233/0/metadata.json",
+      "transcript": "/60/d787a0e233/0/full.jsonl",
+      "compact_transcript": "/60/d787a0e233/0/transcript.jsonl",
+      "content_hash": "/60/d787a0e233/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 15,
+    "cache_creation_tokens": 11533,
+    "cache_read_tokens": 1338026,
+    "output_tokens": 5386,
+    "api_call_count": 8
+  }
+}

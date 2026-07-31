@@ -1,0 +1,65 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "60d787a0e233",
+  "session_id": "54e44017-099e-4a69-bd34-7be106cfa694",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-31T01:44:10.932395Z",
+  "branch": "scottdensmore/feat/heartbeat-tempo",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "sound.go"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "31b5d1d5dd7a",
+  "checkpoint_transcript_start": 363,
+  "transcript_lines_at_start": 363,
+  "compact_transcript_start": 97,
+  "token_usage": {
+    "input_tokens": 15,
+    "cache_creation_tokens": 11533,
+    "cache_read_tokens": 1338026,
+    "output_tokens": 5386,
+    "api_call_count": 8
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-loop-2026-07-31T01:26:16.154494Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "loop"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "0d4676b01f8b",
+      "timestamp": "2026-07-31T01:26:16.154494Z",
+      "native": {
+        "command": "/loop"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/loop",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-31T01:44:10.895142Z",
+    "agent_lines": 33,
+    "agent_removed": 6,
+    "human_added": 44,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 77,
+    "total_lines_changed": 83,
+    "agent_percentage": 46.98795180722892,
+    "metric_version": 2
+  }
+}
