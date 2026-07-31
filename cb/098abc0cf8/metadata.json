@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "cb098abc0cf8",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/docs/agent-workflow",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/cb/098abc0cf8/0/metadata.json",
+      "transcript": "/cb/098abc0cf8/0/full.jsonl",
+      "compact_transcript": "/cb/098abc0cf8/0/transcript.jsonl",
+      "content_hash": "/cb/098abc0cf8/0/content_hash.txt",
+      "prompt": "/cb/098abc0cf8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 17,
+    "cache_creation_tokens": 39982,
+    "cache_read_tokens": 483617,
+    "output_tokens": 8425,
+    "api_call_count": 9
+  }
+}
