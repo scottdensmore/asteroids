@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "920658e57dfb",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/feat/continuous-audio-loops",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "sound.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/92/0658e57dfb/0/metadata.json",
+      "transcript": "/92/0658e57dfb/0/full.jsonl",
+      "compact_transcript": "/92/0658e57dfb/0/transcript.jsonl",
+      "content_hash": "/92/0658e57dfb/0/content_hash.txt",
+      "prompt": "/92/0658e57dfb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 30,
+    "cache_creation_tokens": 23377,
+    "cache_read_tokens": 1237868,
+    "output_tokens": 10804,
+    "api_call_count": 16
+  }
+}
