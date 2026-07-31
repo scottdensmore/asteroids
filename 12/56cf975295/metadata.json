@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "1256cf975295",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/feat/continuous-audio-beds",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "sound.go",
+    "sound_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/12/56cf975295/0/metadata.json",
+      "transcript": "/12/56cf975295/0/full.jsonl",
+      "compact_transcript": "/12/56cf975295/0/transcript.jsonl",
+      "content_hash": "/12/56cf975295/0/content_hash.txt",
+      "prompt": "/12/56cf975295/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 31,
+    "cache_creation_tokens": 25282,
+    "cache_read_tokens": 2267816,
+    "output_tokens": 15659,
+    "api_call_count": 17
+  }
+}
