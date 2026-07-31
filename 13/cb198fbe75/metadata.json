@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "13cb198fbe75",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/feat/extra-life-sound",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "game_test.go",
+    "main.go",
+    "sound.go",
+    "sound_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/13/cb198fbe75/0/metadata.json",
+      "transcript": "/13/cb198fbe75/0/full.jsonl",
+      "compact_transcript": "/13/cb198fbe75/0/transcript.jsonl",
+      "content_hash": "/13/cb198fbe75/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 31,
+    "cache_creation_tokens": 16548,
+    "cache_read_tokens": 2602661,
+    "output_tokens": 9802,
+    "api_call_count": 17
+  }
+}
