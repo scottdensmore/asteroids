@@ -169,7 +169,10 @@ func (sm *SoundManager) startThrust() {
 		_ = sm.thrustPlayer.Close()
 		sm.thrustPlayer = nil
 	}
-	player := sm.ctx.NewPlayerFromBytes(sm.thrust)
+	player := sm.newLoopingPlayer(sm.thrust)
+	if player == nil {
+		return
+	}
 	sm.thrustPlayer = player
 	player.Play()
 }
@@ -195,7 +198,10 @@ func (sm *SoundManager) startUFOLoop(size int) {
 	} else {
 		sound = sm.ufoBig
 	}
-	player := sm.ctx.NewPlayerFromBytes(sound)
+	player := sm.newLoopingPlayer(sound)
+	if player == nil {
+		return
+	}
 	sm.ufoPlayer = player
 	sm.ufoLoopSize = size
 	player.Play()
@@ -234,6 +240,21 @@ func (sm *SoundManager) play(sound []byte) {
 	p.Play()
 }
 
+// newLoopingPlayer builds a player that repeats sound for as long as it plays,
+// so the thrust and saucer beds sustain instead of cutting out after one buffer.
+func (sm *SoundManager) newLoopingPlayer(sound []byte) *audio.Player {
+	if sm == nil || len(sound) == 0 {
+		return nil
+	}
+
+	loop := audio.NewInfiniteLoop(bytes.NewReader(sound), int64(len(sound)))
+	player, err := sm.ctx.NewPlayer(loop)
+	if err != nil {
+		return nil
+	}
+	return player
+}
+
 func (sm *SoundManager) cleanupOneShots() {
 	active := sm.oneShots[:0]
 	for _, p := range sm.oneShots {
@@ -251,8 +272,47 @@ const (
 	waveSaw
 )
 
+// Tuning for the two beds that play continuously under the game.
+const (
+	thrustCarrierHz   = 78.0
+	thrustFlutterHz   = 22.0
+	thrustLoopSeconds = 0.5
+
+	saucerPulseSeconds = 0.18
+	saucerGateSeconds  = 0.12
+)
+
+// frameCountFor rounds a duration to whole frames. Truncating instead would
+// drop the last frame whenever a computed duration lands a hair below its exact
+// value, which is enough to break a loop's phase alignment.
+func frameCountFor(seconds float64) int {
+	return int(math.Round(seconds * sampleRate))
+}
+
+// snapFreq returns the frequency nearest freq that completes a whole number of
+// cycles in window. A looped buffer built from whole windows then wraps at zero
+// phase instead of jumping, which is the difference between a steady bed and a
+// click once per repeat. Frequencies below one cycle per window are held at one.
+func snapFreq(freq float64, window float64) float64 {
+	cycles := math.Round(freq * window)
+	if cycles < 1 {
+		cycles = 1
+	}
+	return cycles / window
+}
+
+// wholePeriods returns the multiple of period nearest seconds, never shorter
+// than a single period, so a loop ends exactly on a period boundary.
+func wholePeriods(seconds float64, period float64) float64 {
+	periods := math.Round(seconds / period)
+	if periods < 1 {
+		periods = 1
+	}
+	return periods * period
+}
+
 func generateTone(freq float64, seconds float64, volume float64, wave int, decay float64) []byte {
-	count := int(float64(sampleRate) * seconds)
+	count := frameCountFor(seconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	for i := 0; i < count; i++ {
@@ -283,7 +343,7 @@ func generateTone(freq float64, seconds float64, volume float64, wave int, decay
 }
 
 func generateSweep(startFreq float64, endFreq float64, seconds float64, volume float64, wave int, decay float64) []byte {
-	count := int(float64(sampleRate) * seconds)
+	count := frameCountFor(seconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
@@ -302,14 +362,16 @@ func generateSweep(startFreq float64, endFreq float64, seconds float64, volume f
 }
 
 func generateThrust() []byte {
-	count := int(float64(sampleRate) * 0.18)
+	carrier := snapFreq(thrustCarrierHz, thrustLoopSeconds)
+	flutterHz := snapFreq(thrustFlutterHz, thrustLoopSeconds)
+	count := frameCountFor(thrustLoopSeconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
 	for i := 0; i < count; i++ {
 		t := float64(i) / sampleRate
-		phase += 2 * math.Pi * 78 / sampleRate
-		flutter := 0.75 + 0.25*math.Sin(2*math.Pi*22*t)
+		phase += 2 * math.Pi * carrier / sampleRate
+		flutter := 0.75 + 0.25*math.Sin(2*math.Pi*flutterHz*t)
 		noise := (mrand.Float64()*2 - 1) * 0.18
 		rumble := sampleWave(phase, waveSaw) * 0.30
 		writeSample(buf, (rumble+noise)*flutter)
@@ -319,20 +381,27 @@ func generateThrust() []byte {
 }
 
 func generateSaucerLoop(highFreq float64, lowFreq float64, seconds float64, volume float64) []byte {
-	count := int(float64(sampleRate) * seconds)
+	// Snap each tone to whole cycles per half pulse and the buffer to whole
+	// pulses, so the loop repeats without a phase jump at either boundary.
+	half := saucerPulseSeconds / 2
+	high := snapFreq(highFreq, half)
+	low := snapFreq(lowFreq, half)
+	seconds = wholePeriods(seconds, saucerPulseSeconds)
+
+	count := frameCountFor(seconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
 	for i := 0; i < count; i++ {
 		t := float64(i) / sampleRate
-		pulse := math.Mod(t, 0.18)
-		freq := lowFreq
-		if pulse < 0.09 {
-			freq = highFreq
+		pulse := math.Mod(t, saucerPulseSeconds)
+		freq := low
+		if pulse < half {
+			freq = high
 		}
 		phase += 2 * math.Pi * freq / sampleRate
 		gate := 0.35
-		if pulse < 0.12 {
+		if pulse < saucerGateSeconds {
 			gate = 1.0
 		}
 		writeSample(buf, sampleWave(phase, waveSquare)*volume*gate)
@@ -342,7 +411,7 @@ func generateSaucerLoop(highFreq float64, lowFreq float64, seconds float64, volu
 }
 
 func generateExplosion(seconds float64, volume float64, startRumble float64, endRumble float64) []byte {
-	count := int(float64(sampleRate) * seconds)
+	count := frameCountFor(seconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
@@ -363,7 +432,7 @@ func generateExplosion(seconds float64, volume float64, startRumble float64, end
 
 func generateShipExplosion() []byte {
 	seconds := 0.62
-	count := int(float64(sampleRate) * seconds)
+	count := frameCountFor(seconds)
 	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	rumblePhase := 0.0
