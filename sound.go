@@ -12,6 +12,11 @@ import (
 
 const sampleRate = 44100
 
+// Ebitengine plays linear PCM as 16-bit little endian, 2 channel stereo. The
+// generators below are mono, so every sample is written to both channels; a
+// buffer that skips this plays an octave high and half as long.
+const bytesPerFrame = 4
+
 type SoundManager struct {
 	ctx *audio.Context
 
@@ -248,7 +253,7 @@ const (
 
 func generateTone(freq float64, seconds float64, volume float64, wave int, decay float64) []byte {
 	count := int(float64(sampleRate) * seconds)
-	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	for i := 0; i < count; i++ {
 		t := float64(i) / sampleRate
@@ -271,8 +276,7 @@ func generateTone(freq float64, seconds float64, volume float64, wave int, decay
 			}
 		}
 
-		sample := int16(v * volume * amp * math.MaxInt16)
-		_ = binary.Write(buf, binary.LittleEndian, sample)
+		writeSample(buf, v*volume*amp)
 	}
 
 	return buf.Bytes()
@@ -280,7 +284,7 @@ func generateTone(freq float64, seconds float64, volume float64, wave int, decay
 
 func generateSweep(startFreq float64, endFreq float64, seconds float64, volume float64, wave int, decay float64) []byte {
 	count := int(float64(sampleRate) * seconds)
-	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
 	for i := 0; i < count; i++ {
@@ -299,7 +303,7 @@ func generateSweep(startFreq float64, endFreq float64, seconds float64, volume f
 
 func generateThrust() []byte {
 	count := int(float64(sampleRate) * 0.18)
-	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
 	for i := 0; i < count; i++ {
@@ -316,7 +320,7 @@ func generateThrust() []byte {
 
 func generateSaucerLoop(highFreq float64, lowFreq float64, seconds float64, volume float64) []byte {
 	count := int(float64(sampleRate) * seconds)
-	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
 	for i := 0; i < count; i++ {
@@ -339,7 +343,7 @@ func generateSaucerLoop(highFreq float64, lowFreq float64, seconds float64, volu
 
 func generateExplosion(seconds float64, volume float64, startRumble float64, endRumble float64) []byte {
 	count := int(float64(sampleRate) * seconds)
-	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	phase := 0.0
 	for i := 0; i < count; i++ {
@@ -360,7 +364,7 @@ func generateExplosion(seconds float64, volume float64, startRumble float64, end
 func generateShipExplosion() []byte {
 	seconds := 0.62
 	count := int(float64(sampleRate) * seconds)
-	buf := bytes.NewBuffer(make([]byte, 0, count*2))
+	buf := bytes.NewBuffer(make([]byte, 0, count*bytesPerFrame))
 
 	rumblePhase := 0.0
 	whinePhase := 0.0
@@ -409,5 +413,6 @@ func writeSample(buf *bytes.Buffer, value float64) {
 	}
 
 	sample := int16(value * math.MaxInt16)
+	_ = binary.Write(buf, binary.LittleEndian, sample)
 	_ = binary.Write(buf, binary.LittleEndian, sample)
 }
