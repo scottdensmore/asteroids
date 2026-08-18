@@ -10,7 +10,7 @@ A vector-style recreation of the 1979 arcade classic, built in Go with
 split asteroids, dodge increasingly accurate saucers, and chase a high score
 against a procedurally generated retro soundtrack.
 
-![Asteroids gameplay with the ship, score, lives, level, and incoming asteroids](img/gameplay.jpeg)
+![Asteroids-inspired arcade cabinet](img/gemini.jpeg)
 
 ## Features
 
