@@ -66,7 +66,7 @@ type Game struct {
     Level       int  
     ScreenWidth int  
     ScreenHeight int  
-    GameState   int // e.g., 0=Playing, 1=GameOver, 2=TitleScreen  
+    GameState   GameState // gameStatePlaying, gameStateGameOver, or gameStateTitle
     LastShot    time.Time  
 }
 
@@ -209,7 +209,7 @@ Follow this plan sequentially. Each step builds on the last and should result in
    * Create (g \*Game) killShip().  
    * This function should:  
      * Decrement g.Lives.  
-     * Check if g.Lives \<= 0\. If so, set g.GameState \= 1 (GameOver).  
+     * Check if g.Lives \<= 0\. If so, set g.GameState \= gameStateGameOver.
      * If lives remain:  
        * Reset g.Ship.Position to center, Velocity to zero.  
        * Set g.Ship.IsInvincible \= true and g.Ship.InvincibleTimer \= 3.0 (3 seconds).  
@@ -224,9 +224,24 @@ Follow this plan sequentially. Each step builds on the last and should result in
    * In Game.Update, check if len(g.Asteroids) \== 0\. If true:  
      * Increment g.Level.  
      * Call g.spawnAsteroids(g.Level \+ 3, 3\) to start the next, harder wave.  
-   * In Game.Update, if g.GameState \== 1 (GameOver), check for 'Enter' key to reset the game.  
-   * In Game.Draw, if g.GameState \== 1, draw "GAME OVER" in the center.  
+   * In Game.Update, if g.GameState \== gameStateGameOver, check for 'Enter' key to reset the game.
+   * In Game.Draw, if g.GameState \== gameStateGameOver, draw "GAME OVER" in the center.
 2. **Test:** The full game loop is now in place. You can score points, lose lives, clear levels, and get a "Game Over."
+
+### **Step 13: Flying Saucers**
+
+1. **Action:**
+   * Spawn at most one saucer after the configured interval.
+   * Spawn the saucer at the left or right edge and move it horizontally across
+     the playfield without wrapping.
+   * Remove the saucer only after its complete outline has left the opposite
+     edge of the screen.
+   * Large saucers fire in random directions. Small saucers aim at the player
+     with accuracy that increases as the score rises.
+   * After 40,000 points, spawn only small saucers.
+2. **Test:** A saucer crosses the screen once, can collide with or shoot the
+   player, awards the correct score when destroyed, and leaves the playfield
+   without reappearing at the opposite edge.
 
 ## **6\. Go Best Practices**
 

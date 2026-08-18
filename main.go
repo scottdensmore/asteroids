@@ -13,11 +13,18 @@ import (
 )
 
 const (
-	ScreenWidth    = 800
-	ScreenHeight   = 600
-	ThrustForce    = 0.1
-	BulletSpeed    = 4.0
-	BulletLifespan = 1.0 // Seconds
+	ScreenWidth       = 800
+	ScreenHeight      = 600
+	ThrustForce       = 0.1
+	BulletSpeed       = 4.0
+	BulletLifespan    = 1.0 // Seconds
+	updatesPerSecond  = 60.0
+	secondsPerUpdate  = 1.0 / updatesPerSecond
+	shipRadius        = 10.0
+	shipRotationStep  = 0.05
+	shipFireCooldown  = 200 * time.Millisecond
+	respawnDelay      = 2.0
+	invincibilityTime = 3.0
 
 	// Score awarded between free ships
 	ExtraLifeInterval = 10000
@@ -32,6 +39,7 @@ const (
 	SmallUFOScore    = 1000
 )
 
+// NewGame constructs a game at the title screen with fresh session state.
 func NewGame() *Game {
 	g := &Game{
 		ScreenWidth:        ScreenWidth,
@@ -44,7 +52,7 @@ func NewGame() *Game {
 		NextExtraLifeScore: ExtraLifeInterval,
 		Particles:          []*Particle{},
 		Sound:              NewSoundManager(),
-		GameState:          2,
+		GameState:          gameStateTitle,
 	}
 
 	return g
@@ -64,7 +72,7 @@ func (g *Game) resetPlayfield() {
 	g.NextExtraLifeScore = ExtraLifeInterval
 	g.Particles = []*Particle{}
 	g.RespawnTimer = 0
-	g.GameState = 0
+	g.GameState = gameStatePlaying
 
 	g.Ship = &Ship{
 		Position: Vector2D{X: float64(ScreenWidth) / 2, Y: float64(ScreenHeight) / 2},
@@ -129,11 +137,8 @@ func (g *Game) splitAsteroid(index int) {
 	if a.Size > 1 {
 		newSize := a.Size - 1
 		for i := 0; i < 2; i++ {
-			// Diverging velocity
-			angle := rand.Float64() * 2 * math.Pi // Random direction for split pieces?
-			// Or based on old velocity? Spec says "diverging velocities".
-			// Let's just randomizing slightly or rotate old velocity.
-			// Simple: random direction, slightly faster.
+			// Split pieces move faster along independently randomized paths.
+			angle := rand.Float64() * 2 * math.Pi
 			speed := math.Hypot(a.Velocity.X, a.Velocity.Y) * 1.5
 			vel := Vector2D{X: math.Cos(angle) * speed, Y: math.Sin(angle) * speed}
 
@@ -189,7 +194,7 @@ func (g *Game) killShip() {
 	g.spawnExplosion(g.Ship.Position)
 	g.Ship = nil
 	g.Lives--
-	g.RespawnTimer = 2.0
+	g.RespawnTimer = respawnDelay
 }
 
 // grantExtraLives awards a free ship for every extra-life threshold the score
@@ -220,15 +225,29 @@ func (g *Game) wrap(pos Vector2D) Vector2D {
 	return pos
 }
 
+func ufoHasExitedScreen(ufo *UFO, screenWidth int) bool {
+	if ufo == nil {
+		return false
+	}
+
+	if ufo.Velocity.X > 0 {
+		return ufo.Position.X-ufo.Radius > float64(screenWidth)
+	}
+	if ufo.Velocity.X < 0 {
+		return ufo.Position.X+ufo.Radius < 0
+	}
+	return false
+}
+
 func (g *Game) Update() error {
-	if g.GameState == 2 {
+	if g.GameState == gameStateTitle {
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			g.resetPlayfield()
 		}
 		return nil
 	}
 
-	if g.GameState == 1 {
+	if g.GameState == gameStateGameOver {
 		// Game Over
 		if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 			// Restart
@@ -247,7 +266,7 @@ func (g *Game) Update() error {
 		p.Position.X += p.Velocity.X
 		p.Position.Y += p.Velocity.Y
 		p.Rotation += p.RotationSpeed
-		p.Lifespan -= 1.0 / 60.0
+		p.Lifespan -= secondsPerUpdate
 		if p.Lifespan <= 0 {
 			g.Particles = append(g.Particles[:i], g.Particles[i+1:]...)
 		}
@@ -255,7 +274,7 @@ func (g *Game) Update() error {
 
 	// Respawn Timer
 	if g.RespawnTimer > 0 {
-		g.RespawnTimer -= 1.0 / 60.0
+		g.RespawnTimer -= secondsPerUpdate
 		if g.RespawnTimer <= 0 {
 			if g.Lives > 0 {
 				// Respawn Ship
@@ -263,10 +282,10 @@ func (g *Game) Update() error {
 					Position:        Vector2D{X: float64(ScreenWidth) / 2, Y: float64(ScreenHeight) / 2},
 					Rotation:        -math.Pi / 2,
 					IsInvincible:    true,
-					InvincibleTimer: 3.0,
+					InvincibleTimer: invincibilityTime,
 				}
 			} else {
-				g.GameState = 1 // Game Over
+				g.GameState = gameStateGameOver
 			}
 		}
 	}
@@ -274,17 +293,17 @@ func (g *Game) Update() error {
 	// 1. Update Ship
 	if g.Ship != nil {
 		if g.Ship.IsInvincible {
-			g.Ship.InvincibleTimer -= 1.0 / 60.0
+			g.Ship.InvincibleTimer -= secondsPerUpdate
 			if g.Ship.InvincibleTimer <= 0 {
 				g.Ship.IsInvincible = false
 			}
 		}
 
 		if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-			g.Ship.Rotation -= 0.05
+			g.Ship.Rotation -= shipRotationStep
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyRight) {
-			g.Ship.Rotation += 0.05
+			g.Ship.Rotation += shipRotationStep
 		}
 
 		g.Ship.IsThrusting = false
@@ -301,7 +320,7 @@ func (g *Game) Update() error {
 		g.Ship.Position = g.wrap(g.Ship.Position)
 
 		if ebiten.IsKeyPressed(ebiten.KeySpace) {
-			if time.Since(g.LastShot) > 200*time.Millisecond {
+			if time.Since(g.LastShot) > shipFireCooldown {
 				noseOffset := Vector2D{X: 15, Y: 0}.Rotate(g.Ship.Rotation)
 				spawnPos := Vector2D{
 					X: g.Ship.Position.X + noseOffset.X,
@@ -333,7 +352,7 @@ func (g *Game) Update() error {
 		b.Position.Y += b.Velocity.Y
 		b.Position = g.wrap(b.Position)
 
-		b.Lifespan -= 1.0 / 60.0
+		b.Lifespan -= secondsPerUpdate
 
 		// Collision with Asteroids
 		hit := false
@@ -382,9 +401,9 @@ func (g *Game) Update() error {
 		a.Rotation += a.RotationSpeed
 
 		// Ship Collision
-		if g.Ship != nil && !g.Ship.IsInvincible && g.GameState == 0 {
+		if g.Ship != nil && !g.Ship.IsInvincible && g.GameState == gameStatePlaying {
 			dist := math.Hypot(g.Ship.Position.X-a.Position.X, g.Ship.Position.Y-a.Position.Y)
-			if dist < a.Radius+10 { // Ship radius approx 10
+			if dist < a.Radius+shipRadius {
 				g.killShip()
 			}
 		}
@@ -445,19 +464,16 @@ func (g *Game) Update() error {
 		ufo := g.UFOs[i]
 		ufo.Position.X += ufo.Velocity.X
 		ufo.Position.Y += ufo.Velocity.Y
-		ufo.Position = g.wrap(ufo.Position)
 
-		// Remove UFO if it goes off screen
-		if (ufo.Velocity.X > 0 && ufo.Position.X > float64(g.ScreenWidth)+ufo.Radius) ||
-			(ufo.Velocity.X < 0 && ufo.Position.X < -ufo.Radius) {
+		if ufoHasExitedScreen(ufo, g.ScreenWidth) {
 			g.UFOs = append(g.UFOs[:i], g.UFOs[i+1:]...)
 			continue
 		}
 
 		// Ship Collision with UFO
-		if g.Ship != nil && !g.Ship.IsInvincible && g.GameState == 0 {
+		if g.Ship != nil && !g.Ship.IsInvincible && g.GameState == gameStatePlaying {
 			dist := math.Hypot(g.Ship.Position.X-ufo.Position.X, g.Ship.Position.Y-ufo.Position.Y)
-			if dist < ufo.Radius+10 { // Ship radius approx 10
+			if dist < ufo.Radius+shipRadius {
 				g.killShip()
 			}
 		}
@@ -514,12 +530,12 @@ func (g *Game) Update() error {
 		b.Position.Y += b.Velocity.Y
 		b.Position = g.wrap(b.Position)
 
-		b.Lifespan -= 1.0 / 60.0
+		b.Lifespan -= secondsPerUpdate
 
 		// Collision with Ship
-		if g.Ship != nil && !g.Ship.IsInvincible && g.GameState == 0 {
+		if g.Ship != nil && !g.Ship.IsInvincible && g.GameState == gameStatePlaying {
 			dist := math.Hypot(b.Position.X-g.Ship.Position.X, b.Position.Y-g.Ship.Position.Y)
-			if dist < 10 { // Ship radius approx 10
+			if dist < shipRadius {
 				g.killShip()
 				g.UFOBullets = append(g.UFOBullets[:i], g.UFOBullets[i+1:]...) // Remove bullet on hit
 				continue
@@ -554,15 +570,18 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	if g.GameState == 2 {
-		ebitenutil.DebugPrintAt(screen, "ASTEROIDS", ScreenWidth/2-36, ScreenHeight/2-48)
-		ebitenutil.DebugPrintAt(screen, "Press Enter to Start", ScreenWidth/2-76, ScreenHeight/2-12)
-		ebitenutil.DebugPrintAt(screen, "Version "+displayVersion(), ScreenWidth/2-44, ScreenHeight/2+24)
+	if g.GameState == gameStateTitle {
+		g.drawCenteredDebugText(screen, "ASTEROIDS", 150, 3)
+		g.drawCenteredDebugText(screen, "PRESS ENTER TO START", 250, 2)
+		g.drawCenteredDebugText(screen, "LEFT/RIGHT ROTATE  UP THRUST  SPACE FIRE", 330, 2)
+		g.drawCenteredDebugText(screen, "VERSION "+displayVersion(), 400, 2)
 		return
 	}
 
-	if g.GameState == 1 {
-		ebitenutil.DebugPrint(screen, "GAME OVER\nPress Enter for New Game\n"+buildInfo())
+	if g.GameState == gameStateGameOver {
+		g.drawCenteredDebugText(screen, "GAME OVER", 180, 3)
+		g.drawCenteredDebugText(screen, "PRESS ENTER FOR NEW GAME", 280, 2)
+		g.drawCenteredDebugText(screen, buildInfoMultiline(), 350, 2)
 		return
 	}
 
@@ -626,7 +645,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// UI
 	msg := fmt.Sprintf("Score: %d  Lives: %d  Level: %d", g.Score, g.Lives, g.Level)
-	ebitenutil.DebugPrint(screen, msg)
+	g.drawScaledDebugText(screen, msg, uiPadding, uiPadding, 2)
 
 	// Draw UFOs
 	for _, ufo := range g.UFOs {
@@ -671,12 +690,21 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return g.ScreenWidth, g.ScreenHeight
 }
 
+func runGame() error {
+	game := NewGame()
+	defer func() {
+		if game.Sound != nil {
+			game.Sound.Close()
+		}
+	}()
+	return ebiten.RunGame(game)
+}
+
 func main() {
-	rand.Seed(time.Now().UnixNano())
 	ebiten.SetWindowSize(ScreenWidth, ScreenHeight)
 	ebiten.SetWindowTitle("Asteroids Clone " + displayVersion())
 
-	if err := ebiten.RunGame(NewGame()); err != nil {
+	if err := runGame(); err != nil {
 		log.Fatal(err)
 	}
 }

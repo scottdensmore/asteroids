@@ -18,3 +18,7 @@ func displayVersion() string {
 func buildInfo() string {
 	return fmt.Sprintf("Version: %s  Commit: %s  Built: %s", displayVersion(), commit, buildDate)
 }
+
+func buildInfoMultiline() string {
+	return fmt.Sprintf("VERSION: %s\nCOMMIT: %s\nBUILT: %s", displayVersion(), commit, buildDate)
+}

@@ -2,6 +2,67 @@ package main
 
 import "testing"
 
+func TestUFOHasExitedScreen(t *testing.T) {
+	tests := []struct {
+		name string
+		ufo  UFO
+		want bool
+	}{
+		{
+			name: "moving right remains until fully clear",
+			ufo: UFO{
+				Position: Vector2D{X: ScreenWidth + SmallUFORadius},
+				Velocity: Vector2D{X: SmallUFOSpeed},
+				Radius:   SmallUFORadius,
+			},
+			want: false,
+		},
+		{
+			name: "moving right exits beyond far edge",
+			ufo: UFO{
+				Position: Vector2D{X: ScreenWidth + SmallUFORadius + 1},
+				Velocity: Vector2D{X: SmallUFOSpeed},
+				Radius:   SmallUFORadius,
+			},
+			want: true,
+		},
+		{
+			name: "moving left remains until fully clear",
+			ufo: UFO{
+				Position: Vector2D{X: -BigUFORadius},
+				Velocity: Vector2D{X: -BigUFOSpeed},
+				Radius:   BigUFORadius,
+			},
+			want: false,
+		},
+		{
+			name: "moving left exits beyond near edge",
+			ufo: UFO{
+				Position: Vector2D{X: -BigUFORadius - 1},
+				Velocity: Vector2D{X: -BigUFOSpeed},
+				Radius:   BigUFORadius,
+			},
+			want: true,
+		},
+		{
+			name: "stationary object does not exit",
+			ufo: UFO{
+				Position: Vector2D{X: ScreenWidth + SmallUFORadius + 1},
+				Radius:   SmallUFORadius,
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ufoHasExitedScreen(&tt.ufo, ScreenWidth); got != tt.want {
+				t.Fatalf("ufoHasExitedScreen() = %t, want %t", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGrantExtraLivesAwardsOnceForOneThreshold(t *testing.T) {
 	g := &Game{Lives: 3, Score: ExtraLifeInterval, NextExtraLifeScore: ExtraLifeInterval}
 

@@ -3,13 +3,25 @@ package main
 import (
 	"math"
 	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// A simple 2D vector for position and velocity
+// GameState identifies the screen and update mode currently in use.
+type GameState uint8
+
+const (
+	gameStatePlaying GameState = iota
+	gameStateGameOver
+	gameStateTitle
+)
+
+// Vector2D represents a position, direction, or velocity in game space.
 type Vector2D struct {
 	X, Y float64
 }
 
+// Rotate returns v rotated counterclockwise around the origin by angle radians.
 func (v Vector2D) Rotate(angle float64) Vector2D {
 	c := math.Cos(angle)
 	s := math.Sin(angle)
@@ -19,11 +31,12 @@ func (v Vector2D) Rotate(angle float64) Vector2D {
 	}
 }
 
+// Subtract returns the vector from other to v.
 func (v Vector2D) Subtract(other Vector2D) Vector2D {
 	return Vector2D{X: v.X - other.X, Y: v.Y - other.Y}
 }
 
-// Player's ship
+// Ship is the player-controlled craft.
 type Ship struct {
 	Position        Vector2D
 	Velocity        Vector2D
@@ -33,7 +46,7 @@ type Ship struct {
 	InvincibleTimer float64
 }
 
-// An asteroid
+// Asteroid is a rotating, destructible obstacle.
 type Asteroid struct {
 	Position      Vector2D
 	Velocity      Vector2D
@@ -44,14 +57,14 @@ type Asteroid struct {
 	Radius        float64    // For simple collision detection
 }
 
-// A bullet fired by the ship
+// Bullet is a projectile fired by the ship.
 type Bullet struct {
 	Position Vector2D
 	Velocity Vector2D
 	Lifespan float64 // Time in seconds before it disappears
 }
 
-// Main game state struct
+// Game owns the complete mutable state for one game session.
 type Game struct {
 	Ship               *Ship
 	Asteroids          []*Asteroid
@@ -63,15 +76,17 @@ type Game struct {
 	Level              int
 	ScreenWidth        int
 	ScreenHeight       int
-	GameState          int // e.g., 0=Playing, 1=GameOver, 2=TitleScreen
+	GameState          GameState
 	LastShot           time.Time
 	LastUFOSpawn       time.Time
 	NextExtraLifeScore int
 	Particles          []*Particle
 	RespawnTimer       float64
 	Sound              *SoundManager
+	textCache          map[string]*ebiten.Image
 }
 
+// Particle is one fading line segment in a ship explosion.
 type Particle struct {
 	Position      Vector2D
 	Velocity      Vector2D
@@ -81,7 +96,7 @@ type Particle struct {
 	Length        float64
 }
 
-// A UFO (flying saucer)
+// UFO is an enemy saucer crossing the playfield.
 type UFO struct {
 	Position   Vector2D
 	Velocity   Vector2D
@@ -91,7 +106,7 @@ type UFO struct {
 	ScoreValue int
 }
 
-// A bullet fired by a UFO
+// UFOBullet is a projectile fired by a saucer.
 type UFOBullet struct {
 	Position Vector2D
 	Velocity Vector2D
