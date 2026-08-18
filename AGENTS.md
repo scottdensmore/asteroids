@@ -17,23 +17,8 @@ audio.
 - Only external dependency: `github.com/hajimehoshi/ebiten/v2`
 - The executable is intentionally thin; gameplay lives in an internal package.
 
-### Layout
-
-| Path | Purpose |
-| --- | --- |
-| `cmd/asteroids/main.go` | Executable entry point and Ebitengine window setup |
-| `internal/game/game.go` | Game setup, `Update`, spawning, collisions, and input |
-| `internal/game/draw.go` | `Draw`, `Layout`, and vector rendering helpers |
-| `internal/game/types.go` | Value and entity types: `Vector2D`, `Ship`, `Asteroid`, `Bullet`, `UFO`, `Particle`, `Game` |
-| `internal/game/ui.go` | Scaled retro text measurement, caching, and rendering helpers |
-| `internal/game/sound.go` | `SoundManager` and the procedural tone/sweep/noise generators |
-| `internal/game/version.go` | `version` / `commit` / `buildDate` vars injected at build time via `-ldflags` |
-| `internal/game/*_test.go` | Tests kept beside the game code they exercise |
-| `SPEC.md` | Gameplay specification — the reference for behavior questions |
-| `README.md` | User-facing description, controls, and run instructions |
-| `CONTRIBUTORS.md` | Project maintainers and human contributors |
-| `LICENSE` | MIT license terms for using and distributing the project |
-| `.github/workflows/release.yml` | Build, test, package, and release pipeline |
+The maintained file-by-file map lives in the
+[contributing guide](CONTRIBUTING.md#project-structure).
 
 `SPEC.md` describes intended game behavior. When a change affects gameplay,
 reconcile it with `SPEC.md` and update the spec in the same pull request if the
@@ -41,22 +26,9 @@ intended behavior itself is changing.
 
 ## Environment and commands
 
-Ebitengine needs a graphics stack. On Linux, install the development packages
-listed in the `Install Linux build dependencies` step of
-`.github/workflows/release.yml` and run graphical commands under `xvfb-run -a`.
-macOS and Windows need no extra packages.
-
-```bash
-go mod download          # fetch dependencies
-go build ./...           # compile
-go test ./...            # run tests (Linux: xvfb-run -a go test ./...)
-go vet ./...             # static analysis
-gofmt -l .               # formatting check; must print nothing
-go run ./cmd/asteroids   # run the game locally
-```
-
-Format with `gofmt -w <files>` before committing. The build binary `asteroids`
-is git-ignored; never commit it.
+Follow the canonical [development environment](CONTRIBUTING.md#development-environment)
+setup and command suite. The build binary `asteroids` is git-ignored; never
+commit it.
 
 ## Workflow rules
 
@@ -207,12 +179,21 @@ gh pr merge --squash --delete-branch
 
 ## Release process
 
-`.github/workflows/release.yml` builds and tests on Linux, macOS, and Windows.
-Pull requests targeting `main` run build and test only. Pushing a `v*` tag or
-running the workflow manually with a tag input builds versioned packages,
-ensures the tag exists, and publishes a GitHub Release once every platform build
-passes. Version metadata is injected through `-ldflags` into the `version`,
-`commit`, and `buildDate` variables in `internal/game/version.go`.
+Release behavior and version metadata are documented in the canonical
+[release automation guide](CONTRIBUTING.md#release-automation) and implemented
+by `.github/workflows/release.yml`.
+
+## Documentation conventions
+
+- Keep `README.md` focused on the game: its presentation, features, controls,
+  play instructions, releases, and concise links to supporting documents.
+- Put development setup, repository structure, and release automation in
+  `CONTRIBUTING.md`; keep mandatory agent workflow and Go conventions here.
+  Put intended gameplay behavior in `SPEC.md`, human attribution in
+  `CONTRIBUTORS.md`, credits in `ACKNOWLEDGMENTS.md`, and license terms in
+  `LICENSE`.
+- Update the owning document instead of duplicating detailed guidance across
+  files that can drift apart.
 
 ## Repository tooling
 
