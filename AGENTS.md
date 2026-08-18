@@ -20,10 +20,6 @@ audio.
 The maintained file-by-file map lives in the
 [contributing guide](CONTRIBUTING.md#project-structure).
 
-`SPEC.md` describes intended game behavior. When a change affects gameplay,
-reconcile it with `SPEC.md` and update the spec in the same pull request if the
-intended behavior itself is changing.
-
 ## Environment and commands
 
 Follow the canonical [development environment](CONTRIBUTING.md#development-environment)
@@ -189,9 +185,8 @@ by `.github/workflows/release.yml`.
   play instructions, releases, and concise links to supporting documents.
 - Put development setup, repository structure, and release automation in
   `CONTRIBUTING.md`; keep mandatory agent workflow and Go conventions here.
-  Put intended gameplay behavior in `SPEC.md`, human attribution in
-  `CONTRIBUTORS.md`, credits in `ACKNOWLEDGMENTS.md`, and license terms in
-  `LICENSE`.
+  Put human attribution in `CONTRIBUTORS.md`, credits in `ACKNOWLEDGMENTS.md`,
+  and license terms in `LICENSE`.
 - Update the owning document instead of duplicating detailed guidance across
   files that can drift apart.
 
