@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "c29680d6d97a",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/refactor/organize-go-packages",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/release.yml",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "SPEC.md",
+    "cmd/asteroids/main.go",
+    "game_test.go",
+    "internal/game/draw.go",
+    "internal/game/game.go",
+    "internal/game/game_test.go",
+    "internal/game/sound.go",
+    "internal/game/sound_test.go",
+    "internal/game/types.go",
+    "internal/game/ui.go",
+    "internal/game/ui_test.go",
+    "internal/game/version.go",
+    "internal/game/version_test.go",
+    "main.go",
+    "sound.go",
+    "sound_test.go",
+    "types.go",
+    "ui.go",
+    "ui_test.go",
+    "version.go",
+    "version_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/c2/9680d6d97a/0/metadata.json",
+      "transcript": "/c2/9680d6d97a/0/full.jsonl",
+      "compact_transcript": "/c2/9680d6d97a/0/transcript.jsonl",
+      "content_hash": "/c2/9680d6d97a/0/content_hash.txt",
+      "prompt": "/c2/9680d6d97a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 133095,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 4639616,
+    "output_tokens": 22000,
+    "api_call_count": 63
+  }
+}
