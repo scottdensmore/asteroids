@@ -31,6 +31,7 @@ audio.
 | `internal/game/*_test.go` | Tests kept beside the game code they exercise |
 | `SPEC.md` | Gameplay specification — the reference for behavior questions |
 | `README.md` | User-facing description, controls, and run instructions |
+| `CONTRIBUTORS.md` | Project maintainers and human contributors |
 | `LICENSE` | MIT license terms for using and distributing the project |
 | `.github/workflows/release.yml` | Build, test, package, and release pipeline |
 

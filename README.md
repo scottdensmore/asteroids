@@ -94,7 +94,13 @@ produce releases.
 | `internal/game/version.go` | Build metadata displayed in the game |
 | `internal/game/*_test.go` | Gameplay, audio, UI, and version unit tests |
 | `SPEC.md` | Intended gameplay behavior |
+| `CONTRIBUTORS.md` | Project maintainers and contributors |
 | `.github/workflows/release.yml` | CI, packaging, and release automation |
+
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the people who maintain and improve
+the project.
 
 ## Acknowledgments
 
