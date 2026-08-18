@@ -1,0 +1,61 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "851bc8160d09",
+  "session_id": "01a01306-8c66-7f21-aef3-cf6ee79c58f0",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-18T05:37:31.045793Z",
+  "branch": "scottdensmore/docs/focus-readme",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ACKNOWLEDGMENTS.md",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "CONTRIBUTORS.md",
+    "README.md"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.6-sol",
+  "turn_id": "80352e496ad3",
+  "checkpoint_transcript_start": 1718,
+  "transcript_lines_at_start": 1718,
+  "compact_transcript_start": 332,
+  "token_usage": {
+    "input_tokens": 36038,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3600896,
+    "output_tokens": 10897,
+    "api_call_count": 28
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-18T05:37:30.932092Z",
+    "agent_lines": 103,
+    "agent_removed": 103,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 103,
+    "total_lines_changed": 206,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 236,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/agents/entire-search.md": 25,
+        ".claude/settings.json": 84,
+        ".codex/agents/entire-search.toml": 23,
+        ".codex/config.toml": 3,
+        ".codex/hooks.json": 40,
+        ".github/hooks/entire.json": 61
+      }
+    }
+  ]
+}

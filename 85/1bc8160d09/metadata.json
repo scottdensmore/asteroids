@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "851bc8160d09",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/docs/focus-readme",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ACKNOWLEDGMENTS.md",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "CONTRIBUTORS.md",
+    "README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/85/1bc8160d09/0/metadata.json",
+      "transcript": "/85/1bc8160d09/0/full.jsonl",
+      "compact_transcript": "/85/1bc8160d09/0/transcript.jsonl",
+      "content_hash": "/85/1bc8160d09/0/content_hash.txt",
+      "prompt": "/85/1bc8160d09/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 36038,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3600896,
+    "output_tokens": 10897,
+    "api_call_count": 28
+  }
+}
