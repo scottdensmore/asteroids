@@ -1,0 +1,59 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "df548a2ce98e",
+  "session_id": "01a01306-8c66-7f21-aef3-cf6ee79c58f0",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-18T04:48:42.202762Z",
+  "branch": "scottdensmore/docs/restore-readme-image",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "README.md",
+    "img/gameplay.jpeg",
+    "img/gemini.jpeg"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.6-sol",
+  "turn_id": "187935f241d2",
+  "checkpoint_transcript_start": 826,
+  "transcript_lines_at_start": 826,
+  "compact_transcript_start": 152,
+  "token_usage": {
+    "input_tokens": 17945,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3547648,
+    "output_tokens": 3174,
+    "api_call_count": 20
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-18T04:48:42.139716Z",
+    "agent_lines": 1,
+    "agent_removed": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1,
+    "total_lines_changed": 2,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 236,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/agents/entire-search.md": 25,
+        ".claude/settings.json": 84,
+        ".codex/agents/entire-search.toml": 23,
+        ".codex/config.toml": 3,
+        ".codex/hooks.json": 40,
+        ".github/hooks/entire.json": 61
+      }
+    }
+  ]
+}
