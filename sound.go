@@ -79,7 +79,7 @@ func (sm *SoundManager) Update(g *Game) {
 	sm.cleanupOneShots()
 
 	now := time.Now()
-	if g.GameState != 0 {
+	if g.GameState != gameStatePlaying {
 		sm.stopThrust()
 		sm.stopUFOLoop()
 		return

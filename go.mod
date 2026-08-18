@@ -1,4 +1,4 @@
-module asteroids
+module github.com/scottdensmore/asteroids
 
 go 1.24.10
 

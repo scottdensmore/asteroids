@@ -12,7 +12,7 @@ An Asteroids arcade clone written in Go using
 screen wrapping, splitting asteroids, UFOs, and procedurally generated retro
 audio.
 
-- Module: `asteroids` (see `go.mod`)
+- Module: `github.com/scottdensmore/asteroids` (see `go.mod`)
 - Go version: pinned by `go.mod` (currently 1.24.10 or newer)
 - Only external dependency: `github.com/hajimehoshi/ebiten/v2`
 - Everything lives in a single `main` package at the repository root.
@@ -23,6 +23,7 @@ audio.
 | --- | --- |
 | `main.go` | Game loop: `NewGame`, `Update`, `Draw`, `Layout`, spawning, collisions, input |
 | `types.go` | Value and entity types: `Vector2D`, `Ship`, `Asteroid`, `Bullet`, `UFO`, `Particle`, `Game` |
+| `ui.go` | Scaled retro text measurement, caching, and rendering helpers |
 | `sound.go` | `SoundManager` and the procedural tone/sweep/noise generators |
 | `version.go` | `version` / `commit` / `buildDate` vars injected at build time via `-ldflags` |
 | `version_test.go` | Tests for the version helpers |
