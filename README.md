@@ -3,6 +3,7 @@
 [![Build and Release](https://github.com/scottdensmore/asteroids/actions/workflows/release.yml/badge.svg)](https://github.com/scottdensmore/asteroids/actions/workflows/release.yml)
 [![Latest Release](https://img.shields.io/github/v/release/scottdensmore/asteroids?sort=semver)](https://github.com/scottdensmore/asteroids/releases/latest)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/scottdensmore/asteroids)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Ebitengine](https://img.shields.io/badge/powered%20by-Ebitengine-00a4de)](https://ebitengine.org/)
 
 A vector-style recreation of the 1979 arcade classic, built in Go with
@@ -98,3 +99,7 @@ produce releases.
 This independent learning project is inspired by Atari's original *Asteroids*
 and was initially developed interactively with the Gemini CLI. Ebitengine and
 Go make the cross-platform game loop, rendering, input, and audio possible.
+
+## License
+
+Licensed under the [MIT License](LICENSE).
