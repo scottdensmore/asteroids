@@ -8,4 +8,4 @@ Thank you to everyone who has helped improve Asteroids.
 
 Human contributors are listed here after their work is merged. Automated tools
 and assistants remain attributable through the repository history and the
-acknowledgments in the README.
+[acknowledgments](ACKNOWLEDGMENTS.md).

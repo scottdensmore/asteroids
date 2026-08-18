@@ -24,21 +24,6 @@ against a procedurally generated retro soundtrack.
 - Version, commit, and build metadata embedded in release binaries
 - Cross-platform release packages for Linux, macOS, and Windows
 
-## Quick start
-
-Install [Go 1.24.10 or newer](https://go.dev/doc/install), then clone and run
-the project:
-
-```bash
-git clone https://github.com/scottdensmore/asteroids.git
-cd asteroids
-go run ./cmd/asteroids
-```
-
-Ebitengine opens the game in an 800 x 600 desktop window. Linux systems also
-need the graphics and audio development packages documented in the
-[release workflow](.github/workflows/release.yml).
-
 ## Controls
 
 | Key | Action |
@@ -48,7 +33,7 @@ need the graphics and audio development packages documented in the
 | <kbd>Up Arrow</kbd> | Apply thrust |
 | <kbd>Space</kbd> | Fire |
 
-## Releases
+## Play
 
 Download ready-to-run archives from the
 [latest GitHub release](https://github.com/scottdensmore/asteroids/releases/latest).
@@ -58,56 +43,22 @@ Each release contains a platform-specific binary:
 - macOS: `asteroids-macos-<version>.tar.gz`
 - Windows: `asteroids-windows-amd64-<version>.zip`
 
-Release builds are created from Semantic Version tags such as `v1.2.3`, with
-optional prerelease or build metadata supported. The GitHub Actions workflow
-tests all three platforms, embeds version metadata, packages the binaries, and
-publishes the release only after every platform build succeeds.
-
-## Development
-
-Run the complete local quality suite before opening a pull request:
+You can also run the game from source with
+[Go 1.24.10 or newer](https://go.dev/doc/install):
 
 ```bash
-gofmt -l .
-go vet ./...
-go build ./...
-go test ./...
+git clone https://github.com/scottdensmore/asteroids.git
+cd asteroids
+go run ./cmd/asteroids
 ```
 
-`gofmt -l .` must produce no output. On Linux, install the dependencies listed
-in the workflow and run graphical tests with `xvfb-run -a go test ./...`.
+Ebitengine opens the game in an 800 x 600 desktop window. Linux source builds
+need the system packages listed in the [contributing guide](CONTRIBUTING.md).
 
-The repository uses Dependabot for Go module and GitHub Actions updates. Pull
-requests are checked on Linux, macOS, and Windows by the same workflow used to
-produce releases.
+## Project documentation
 
-## Project structure
-
-| Path | Purpose |
-| --- | --- |
-| `cmd/asteroids/main.go` | Thin executable entry point and window setup |
-| `internal/game/game.go` | Game loop, input, movement, collisions, and spawning |
-| `internal/game/draw.go` | Vector rendering and Ebitengine layout |
-| `internal/game/types.go` | Game state and entity types |
-| `internal/game/ui.go` | Scaled retro text measurement, caching, and rendering |
-| `internal/game/sound.go` | Procedural audio synthesis and playback |
-| `internal/game/version.go` | Build metadata displayed in the game |
-| `internal/game/*_test.go` | Gameplay, audio, UI, and version unit tests |
-| `SPEC.md` | Intended gameplay behavior |
-| `CONTRIBUTORS.md` | Project maintainers and contributors |
-| `.github/workflows/release.yml` | CI, packaging, and release automation |
-
-## Contributors
-
-See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the people who maintain and improve
-the project.
-
-## Acknowledgments
-
-This independent learning project is inspired by Atari's original *Asteroids*
-and was initially developed interactively with the Gemini CLI. Ebitengine and
-Go make the cross-platform game loop, rendering, input, and audio possible.
-
-## License
-
-Licensed under the [MIT License](LICENSE).
+- [Contributing and development](CONTRIBUTING.md)
+- [Gameplay specification](SPEC.md)
+- [Contributors](CONTRIBUTORS.md)
+- [Acknowledgments](ACKNOWLEDGMENTS.md)
+- [MIT License](LICENSE)
