@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "2979fa70aa0b",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/docs/add-mit-license",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/29/79fa70aa0b/0/metadata.json",
+      "transcript": "/29/79fa70aa0b/0/full.jsonl",
+      "compact_transcript": "/29/79fa70aa0b/0/transcript.jsonl",
+      "content_hash": "/29/79fa70aa0b/0/content_hash.txt",
+      "prompt": "/29/79fa70aa0b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 15121,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3052544,
+    "output_tokens": 3102,
+    "api_call_count": 16
+  }
+}
