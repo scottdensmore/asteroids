@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "2e1dbde1b693",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/docs/add-contributors",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "CONTRIBUTORS.md",
+    "README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/2e/1dbde1b693/0/metadata.json",
+      "transcript": "/2e/1dbde1b693/0/full.jsonl",
+      "compact_transcript": "/2e/1dbde1b693/0/transcript.jsonl",
+      "content_hash": "/2e/1dbde1b693/0/content_hash.txt",
+      "prompt": "/2e/1dbde1b693/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 18132,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1986304,
+    "output_tokens": 3424,
+    "api_call_count": 18
+  }
+}

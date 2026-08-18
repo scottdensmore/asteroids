@@ -1,0 +1,5 @@
+Also can you make sure that we are following go best practices. Make sure to organize the code in the right directories
+
+---
+
+also should use a contributors file
