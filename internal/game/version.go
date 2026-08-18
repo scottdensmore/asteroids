@@ -1,4 +1,4 @@
-package main
+package game
 
 import "fmt"
 
@@ -13,6 +13,11 @@ func displayVersion() string {
 		return "dev"
 	}
 	return version
+}
+
+// Version returns the display version embedded in the binary.
+func Version() string {
+	return displayVersion()
 }
 
 func buildInfo() string {

@@ -32,7 +32,7 @@ the project:
 ```bash
 git clone https://github.com/scottdensmore/asteroids.git
 cd asteroids
-go run .
+go run ./cmd/asteroids
 ```
 
 Ebitengine opens the game in an 800 x 600 desktop window. Linux systems also
@@ -85,12 +85,14 @@ produce releases.
 
 | Path | Purpose |
 | --- | --- |
-| `main.go` | Game loop, input, movement, collisions, spawning, and rendering |
-| `types.go` | Game state and entity types |
-| `ui.go` | Scaled retro text measurement, caching, and rendering |
-| `sound.go` | Procedural audio synthesis and playback |
-| `version.go` | Build metadata displayed in the game |
-| `*_test.go` | Gameplay, audio, and version unit tests |
+| `cmd/asteroids/main.go` | Thin executable entry point and window setup |
+| `internal/game/game.go` | Game loop, input, movement, collisions, and spawning |
+| `internal/game/draw.go` | Vector rendering and Ebitengine layout |
+| `internal/game/types.go` | Game state and entity types |
+| `internal/game/ui.go` | Scaled retro text measurement, caching, and rendering |
+| `internal/game/sound.go` | Procedural audio synthesis and playback |
+| `internal/game/version.go` | Build metadata displayed in the game |
+| `internal/game/*_test.go` | Gameplay, audio, UI, and version unit tests |
 | `SPEC.md` | Intended gameplay behavior |
 | `.github/workflows/release.yml` | CI, packaging, and release automation |
 
