@@ -15,18 +15,20 @@ audio.
 - Module: `github.com/scottdensmore/asteroids` (see `go.mod`)
 - Go version: pinned by `go.mod` (currently 1.24.10 or newer)
 - Only external dependency: `github.com/hajimehoshi/ebiten/v2`
-- Everything lives in a single `main` package at the repository root.
+- The executable is intentionally thin; gameplay lives in an internal package.
 
 ### Layout
 
 | Path | Purpose |
 | --- | --- |
-| `main.go` | Game loop: `NewGame`, `Update`, `Draw`, `Layout`, spawning, collisions, input |
-| `types.go` | Value and entity types: `Vector2D`, `Ship`, `Asteroid`, `Bullet`, `UFO`, `Particle`, `Game` |
-| `ui.go` | Scaled retro text measurement, caching, and rendering helpers |
-| `sound.go` | `SoundManager` and the procedural tone/sweep/noise generators |
-| `version.go` | `version` / `commit` / `buildDate` vars injected at build time via `-ldflags` |
-| `version_test.go` | Tests for the version helpers |
+| `cmd/asteroids/main.go` | Executable entry point and Ebitengine window setup |
+| `internal/game/game.go` | Game setup, `Update`, spawning, collisions, and input |
+| `internal/game/draw.go` | `Draw`, `Layout`, and vector rendering helpers |
+| `internal/game/types.go` | Value and entity types: `Vector2D`, `Ship`, `Asteroid`, `Bullet`, `UFO`, `Particle`, `Game` |
+| `internal/game/ui.go` | Scaled retro text measurement, caching, and rendering helpers |
+| `internal/game/sound.go` | `SoundManager` and the procedural tone/sweep/noise generators |
+| `internal/game/version.go` | `version` / `commit` / `buildDate` vars injected at build time via `-ldflags` |
+| `internal/game/*_test.go` | Tests kept beside the game code they exercise |
 | `SPEC.md` | Gameplay specification — the reference for behavior questions |
 | `README.md` | User-facing description, controls, and run instructions |
 | `LICENSE` | MIT license terms for using and distributing the project |
@@ -49,7 +51,7 @@ go build ./...           # compile
 go test ./...            # run tests (Linux: xvfb-run -a go test ./...)
 go vet ./...             # static analysis
 gofmt -l .               # formatting check; must print nothing
-go run .                 # run the game locally
+go run ./cmd/asteroids   # run the game locally
 ```
 
 Format with `gofmt -w <files>` before committing. The build binary `asteroids`
@@ -188,8 +190,10 @@ gh pr merge --squash --delete-branch
 
 ## Go conventions
 
-- Keep the single `main` package flat; introduce packages only when a change
-  genuinely needs the boundary.
+- Keep `cmd/asteroids` limited to process startup and window configuration.
+  Gameplay, rendering, audio, and build metadata belong in `internal/game`.
+- Add another package only when it represents a cohesive boundary and reduces
+  coupling; do not split the game into packages solely to create directories.
 - Methods that mutate game state hang off `*Game`; audio behavior belongs on
   `*SoundManager`.
 - Prefer small, focused helpers over growing `Update` and `Draw`.
@@ -207,7 +211,7 @@ Pull requests targeting `main` run build and test only. Pushing a `v*` tag or
 running the workflow manually with a tag input builds versioned packages,
 ensures the tag exists, and publishes a GitHub Release once every platform build
 passes. Version metadata is injected through `-ldflags` into the `version`,
-`commit`, and `buildDate` variables in `version.go`.
+`commit`, and `buildDate` variables in `internal/game/version.go`.
 
 ## Repository tooling
 

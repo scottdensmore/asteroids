@@ -1,8 +1,8 @@
-package main
+package game
 
 import "testing"
 
-func TestDisplayVersionFallsBackToDev(t *testing.T) {
+func TestVersionFallsBackToDev(t *testing.T) {
 	original := version
 	t.Cleanup(func() {
 		version = original
@@ -10,8 +10,8 @@ func TestDisplayVersionFallsBackToDev(t *testing.T) {
 
 	version = ""
 
-	if got := displayVersion(); got != "dev" {
-		t.Fatalf("displayVersion() = %q, want %q", got, "dev")
+	if got := Version(); got != "dev" {
+		t.Fatalf("Version() = %q, want %q", got, "dev")
 	}
 }
 

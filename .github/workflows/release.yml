@@ -171,9 +171,14 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           mkdir -p dist package
+          metadata_package="github.com/scottdensmore/asteroids/internal/game"
+          ldflags="-s -w"
+          ldflags+=" -X $metadata_package.version=$VERSION"
+          ldflags+=" -X $metadata_package.commit=$COMMIT"
+          ldflags+=" -X $metadata_package.buildDate=$BUILD_DATE"
           go build -trimpath \
-            -ldflags="-s -w -X main.version=$VERSION -X main.commit=$COMMIT -X main.buildDate=$BUILD_DATE" \
-            -o "dist/$BINARY" .
+            -ldflags="$ldflags" \
+            -o "dist/$BINARY" ./cmd/asteroids
 
       - name: Package Unix binary
         if: runner.os != 'Windows'

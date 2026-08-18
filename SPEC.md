@@ -16,7 +16,7 @@ The objective is to create a clone of the classic 1979 arcade game "Asteroids." 
 The game **must** emulate the classic monochrome vector graphics of the original.
 
 * **Rendering:** All game objects (ship, asteroids, bullets) will be rendered as geometric outlines (polygons) drawn with white lines. **Do not use sprites or filled shapes.**  
-* **Tooling:** Use ebitenutil.DrawLine or vector.StrokeLine for all drawing. Ebitengine is a raster library, but we will use it to simulate vector graphics.  
+* **Tooling:** Use the supported `vector` drawing primitives for all geometry. Ebitengine is a raster library, but we use it to simulate vector graphics.
 * **Background:** The background must be solid black.  
 * **UI:** Text for score and lives should be rendered in a simple, pixelated, or fixed-width font (e.g., golang.org/x/image/font/basicfont).
 
@@ -79,10 +79,10 @@ Follow this plan sequentially. Each step builds on the last and should result in
 1. **Action:**  
    * Initialize a new Go module (go mod init).  
    * Add Ebitengine as a dependency (go get github.com/hajimehoshi/ebiten/v2).  
-   * Create a main.go file.  
-   * Define the Game struct and implement the ebiten.Game interface (Update, Draw, Layout).  
-   * In main(), set the window size (e.g., 800x600), title, and run the game loop with ebiten.RunGame(NewGame()).  
-2. **Test:** Running go run . should open a blank, black 800x600 window.
+   * Create the executable entry point in `cmd/asteroids/main.go`.
+   * Define the Game struct in `internal/game` and implement the ebiten.Game interface (Update, Draw, Layout).
+   * In main(), set the window size (e.g., 800x600), title, and run the game loop with ebiten.RunGame(game.New()).
+2. **Test:** Running `go run ./cmd/asteroids` should open a blank, black 800x600 window.
 
 ### **Step 2: Draw the Ship (Static)**
 
@@ -245,7 +245,7 @@ Follow this plan sequentially. Each step builds on the last and should result in
 
 ## **6\. Go Best Practices**
 
-* **Code Organization:** Keep main.go clean. You may want to split entity logic (ship, asteroid) into separate files (e.g., ship.go, asteroid.go) in the same package.  
+* **Code Organization:** Keep `cmd/asteroids/main.go` limited to startup. Keep cohesive gameplay files in `internal/game`, and split entity logic into additional files only when that improves maintainability.
 * **Idiomatic Go:** Use Go modules for dependencies. Format your code with gofmt or goimports.  
 * **Comments:** Comment complex logic, especially physics and collision calculations.  
 * **Constants:** Do not use magic numbers. Define constants for THRUST\_FORCE, BULLET\_SPEED, SHIP\_ROTATION\_SPEED, BULLET\_LIFESPAN, etc.  
