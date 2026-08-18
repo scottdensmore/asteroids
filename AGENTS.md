@@ -29,6 +29,7 @@ audio.
 | `version_test.go` | Tests for the version helpers |
 | `SPEC.md` | Gameplay specification — the reference for behavior questions |
 | `README.md` | User-facing description, controls, and run instructions |
+| `LICENSE` | MIT license terms for using and distributing the project |
 | `.github/workflows/release.yml` | Build, test, package, and release pipeline |
 
 `SPEC.md` describes intended game behavior. When a change affects gameplay,
