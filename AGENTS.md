@@ -185,8 +185,7 @@ by `.github/workflows/release.yml`.
   play instructions, releases, and concise links to supporting documents.
 - Put development setup, repository structure, and release automation in
   `CONTRIBUTING.md`; keep mandatory agent workflow and Go conventions here.
-  Put human attribution in `CONTRIBUTORS.md`, credits in `ACKNOWLEDGMENTS.md`,
-  and license terms in `LICENSE`.
+  Put credits in `ACKNOWLEDGMENTS.md` and license terms in `LICENSE`.
 - Update the owning document instead of duplicating detailed guidance across
   files that can drift apart.
 
