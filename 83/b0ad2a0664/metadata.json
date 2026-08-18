@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "83b0ad2a0664",
+  "strategy": "manual-commit",
+  "branch": "scottdensmore/docs/remove-spec",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "SPEC.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/83/b0ad2a0664/0/metadata.json",
+      "transcript": "/83/b0ad2a0664/0/full.jsonl",
+      "compact_transcript": "/83/b0ad2a0664/0/transcript.jsonl",
+      "content_hash": "/83/b0ad2a0664/0/content_hash.txt",
+      "prompt": "/83/b0ad2a0664/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 196385,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 7000576,
+    "output_tokens": 6532,
+    "api_call_count": 49
+  }
+}

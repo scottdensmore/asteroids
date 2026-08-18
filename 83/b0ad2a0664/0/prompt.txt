@@ -1,0 +1,5 @@
+And the readme should be only focused on the game and anything else should be moved to other files and linked
+
+---
+
+you can delete [SPEC.md](SPEC.md)
