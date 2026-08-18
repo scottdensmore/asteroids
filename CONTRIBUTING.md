@@ -2,8 +2,7 @@
 
 Thank you for helping improve Asteroids. Before making a change, read
 [AGENTS.md](AGENTS.md), the repository's source of truth for branching,
-test-driven development, review, verification, and pull requests. Changes to
-gameplay must also remain consistent with [SPEC.md](SPEC.md).
+test-driven development, review, verification, and pull requests.
 
 ## Development environment
 
@@ -39,7 +38,6 @@ go test ./...
 | `internal/game/version.go` | Build metadata injected with `-ldflags` |
 | `internal/game/*_test.go` | Tests kept beside the game code they exercise |
 | `README.md` | Player-facing game overview, controls, and play instructions |
-| `SPEC.md` | Intended gameplay behavior |
 | `CONTRIBUTING.md` | Development setup, repository structure, and release automation |
 | `CONTRIBUTORS.md` | Project maintainers and human contributors |
 | `ACKNOWLEDGMENTS.md` | Inspiration, foundational tools, and automated assistance |
