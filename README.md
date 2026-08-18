@@ -58,6 +58,5 @@ need the system packages listed in the [contributing guide](CONTRIBUTING.md).
 ## Project documentation
 
 - [Contributing and development](CONTRIBUTING.md)
-- [Contributors](CONTRIBUTORS.md)
 - [Acknowledgments](ACKNOWLEDGMENTS.md)
 - [MIT License](LICENSE)

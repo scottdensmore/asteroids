@@ -39,7 +39,6 @@ go test ./...
 | `internal/game/*_test.go` | Tests kept beside the game code they exercise |
 | `README.md` | Player-facing game overview, controls, and play instructions |
 | `CONTRIBUTING.md` | Development setup, repository structure, and release automation |
-| `CONTRIBUTORS.md` | Project maintainers and human contributors |
 | `ACKNOWLEDGMENTS.md` | Inspiration, foundational tools, and automated assistance |
 | `LICENSE` | MIT license terms |
 | `.github/workflows/release.yml` | Build, test, package, and release pipeline |
