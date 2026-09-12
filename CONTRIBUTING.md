@@ -1,8 +1,6 @@
 # Contributing to Asteroids
 
-Thank you for helping improve Asteroids. Before making a change, read
-[AGENTS.md](AGENTS.md), the repository's source of truth for branching,
-test-driven development, review, verification, and pull requests.
+Thank you for helping improve Asteroids.
 
 ## Development environment
 
