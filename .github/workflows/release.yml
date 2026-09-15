@@ -204,6 +204,7 @@ jobs:
           name: ${{ matrix.package }}
           path: package/*
           if-no-files-found: error
+          retention-days: 3
 
   release:
     name: Create GitHub release
