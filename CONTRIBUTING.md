@@ -7,7 +7,7 @@ Thank you for helping improve Asteroids.
 Install the Go version pinned in [go.mod](go.mod). Ebitengine needs a graphics
 stack. On Linux, install the development packages listed in the
 `Install Linux build dependencies` step of the
-[release workflow](.github/workflows/release.yml) and run graphical commands
+[CI workflow](.github/workflows/ci.yml) and run graphical commands
 under `xvfb-run -a`. macOS and Windows need no additional packages.
 
 Run the local quality suite before opening a pull request:
@@ -39,7 +39,16 @@ go test ./...
 | `CONTRIBUTING.md` | Development setup, repository structure, and release automation |
 | `ACKNOWLEDGMENTS.md` | Inspiration, foundational tools, and automated assistance |
 | `LICENSE` | MIT license terms |
+| `.github/workflows/ci.yml` | Formatting, vet, build, and tests without publishing |
 | `.github/workflows/release.yml` | Build, test, package, and release pipeline |
+
+## Build and test CI
+
+The CI workflow checks formatting, runs vet, builds packages, and runs tests on
+Linux, macOS, and Windows for pull requests and pushes to `main`. It can also be
+run manually without inputs. Linux tests run under Xvfb. CI has read-only
+repository permissions, does not retain Git credentials, and does not call the
+release workflow, create tags, upload packages, or publish releases.
 
 ## Release automation
 
@@ -49,4 +58,4 @@ and Windows, embeds version metadata, packages each binary, and publishes a
 release only after every platform build succeeds.
 
 Dependabot keeps Go modules and GitHub Actions current. Pull requests run the
-same cross-platform build and test workflow without publishing a release.
+separate cross-platform CI workflow without publishing a release.

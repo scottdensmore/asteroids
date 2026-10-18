@@ -1,6 +1,6 @@
 # Asteroids
 
-[![Build and Release](https://github.com/scottdensmore/asteroids/actions/workflows/release.yml/badge.svg)](https://github.com/scottdensmore/asteroids/actions/workflows/release.yml)
+[![CI](https://github.com/scottdensmore/asteroids/actions/workflows/ci.yml/badge.svg)](https://github.com/scottdensmore/asteroids/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/scottdensmore/asteroids?sort=semver)](https://github.com/scottdensmore/asteroids/releases/latest)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/scottdensmore/asteroids)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
