@@ -60,3 +60,26 @@ need the system packages listed in the [contributing guide](CONTRIBUTING.md).
 - [Contributing and development](CONTRIBUTING.md)
 - [Acknowledgments](ACKNOWLEDGMENTS.md)
 - [MIT License](LICENSE)
+
+## Manual releases
+
+The release workflow runs only from **Actions → Manual release → Run workflow**.
+Select the default branch and provide a new `vMAJOR.MINOR.PATCH` semantic version
+and the full 40-character commit SHA selected for that dispatch. The SHA must
+match the immutable default-branch commit used by the workflow. Historical
+commits, existing tags, and existing releases (including drafts) are rejected.
+
+The workflow validates inputs, runs formatting, vet, builds and uncached tests,
+and packages the existing Linux, Windows and macOS binaries. It requires
+compatible Go and system dependencies already present on the hosted runners;
+it stops if they are missing. It downloads project Go modules but does not
+install a toolchain or system packages. Automatic build/test CI remains separate.
+
+Only after every platform succeeds does the publishing job create a lightweight
+tag pointing to the tested SHA. It creates a draft GitHub Release, verifies the
+uploaded archives and checksums against that SHA, and then publishes the release.
+The existing three archive formats are retained, with `SHA256SUMS` and
+`release-provenance.json` added. A failure after tag creation may leave a tag or
+draft for manual inspection; retries never replace tags, overwrite assets, or
+resume an existing release automatically. Dispatching this workflow is an
+explicit request to create the tag and publish the GitHub Release.

@@ -1,256 +1,263 @@
-name: Build and Release
-
-on:
-  pull_request:
-    branches:
-      - main
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag to create, for example v1.0.0"
-        required: true
-        type: string
-
+---
+name: Manual release
 permissions:
   contents: read
-
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-  cancel-in-progress: true
-
+  group: manual-release-${{ github.repository }}
+  cancel-in-progress: false
 jobs:
+  prepare:
+    name: Validate manual release without publishing
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: release-tools
+        shell: bash
+    outputs:
+      tag: "${{ steps.validate.outputs.tag }}"
+      version: "${{ steps.validate.outputs.version }}"
+      source_sha: "${{ steps.validate.outputs.source_sha }}"
+      build_date: "${{ steps.validate.outputs.build_date }}"
+    steps:
+    - name: Check out trusted release automation
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: "${{ github.sha }}"
+        path: release-tools
+        persist-credentials: false
+        fetch-tags: false
+    - name: Run non-publishing release-policy tests
+      run: python3 -I -B -m unittest discover -s .github/scripts -p 'test_release_policy.py'
+        -v
+    - name: Validate dispatch, exact source and unused tag/release
+      id: validate
+      env:
+        GH_TOKEN: "${{ github.token }}"
+      run: python3 .github/scripts/release_policy.py prepare
   quality:
     name: Code quality
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Install Linux build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libasound2-dev \
-            libgl1-mesa-dev \
-            libxcursor-dev \
-            libxi-dev \
-            libxinerama-dev \
-            libxrandr-dev \
-            libxxf86vm-dev \
-            pkg-config \
-            xvfb
-
-      - name: Download Go modules
-        run: go mod download
-
-      - name: Check formatting
+    - name: Check out trusted release automation
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: "${{ github.sha }}"
+        path: release-tools
+        persist-credentials: false
+        fetch-tags: false
+    - name: Check out the exact selected source
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: "${{ needs.prepare.outputs.source_sha }}"
+        path: source
+        persist-credentials: false
+        fetch-tags: false
+    - name: Select compatible preinstalled native Go without installation
+      run: python3 ../release-tools/.github/scripts/release_policy.py toolchain
+    - name: Require existing Linux build and display dependencies
+      run: |
+        set -euo pipefail
+        for tool in gcc pkg-config xvfb-run xauth; do
+          command -v "$tool" || { echo "Missing preinstalled $tool; installation is not authorized"; exit 1; }
+        done
+        pkg-config --print-errors --exists alsa gl x11 xcursor xi xinerama xrandr xxf86vm
+    - name: Download Go modules
+      run: go mod download
+    - name: Check formatting
+      shell: bash
+      run: |
+        unformatted="$(gofmt -l .)"
+        if [[ -n "$unformatted" ]]; then
+          echo "The following files need gofmt:"
+          echo "$unformatted"
+          exit 1
+        fi
+    - name: Run vet
+      run: go vet ./...
+    - name: Build packages
+      run: go build ./...
+    - name: Preserve source and dependency locks
+      run: git diff --exit-code
+    needs:
+    - prepare
+    defaults:
+      run:
+        working-directory: source
         shell: bash
-        run: |
-          unformatted="$(gofmt -l .)"
-          if [[ -n "$unformatted" ]]; then
-            echo "The following files need gofmt:"
-            echo "$unformatted"
-            exit 1
-          fi
-
-      - name: Run vet
-        run: go vet ./...
-
-      - name: Build packages
-        run: go build ./...
-
   build:
     name: Build and test (${{ matrix.name }})
-    runs-on: ${{ matrix.runner }}
+    runs-on: "${{ matrix.runner }}"
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: linux-amd64
-            runner: ubuntu-latest
-            binary: asteroids
-            package: asteroids-linux-amd64
-          - name: windows-amd64
-            runner: windows-latest
-            binary: asteroids.exe
-            package: asteroids-windows-amd64
-          - name: macos
-            runner: macos-latest
-            binary: asteroids
-            package: asteroids-macos
-
+        - name: linux-amd64
+          runner: ubuntu-latest
+          binary: asteroids
+          package: asteroids-linux-amd64
+        - name: windows-amd64
+          runner: windows-latest
+          binary: asteroids.exe
+          package: asteroids-windows-amd64
+        - name: macos
+          runner: macos-latest
+          binary: asteroids
+          package: asteroids-macos
     steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libasound2-dev \
-            libgl1-mesa-dev \
-            libxcursor-dev \
-            libxi-dev \
-            libxinerama-dev \
-            libxrandr-dev \
-            libxxf86vm-dev \
-            pkg-config \
-            xvfb
-
-      - name: Download Go modules
-        run: go mod download
-
-      - name: Run tests
+    - name: Check out trusted release automation
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: "${{ github.sha }}"
+        path: release-tools
+        persist-credentials: false
+        fetch-tags: false
+    - name: Check out the exact selected source
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: "${{ needs.prepare.outputs.source_sha }}"
+        path: source
+        persist-credentials: false
+        fetch-tags: false
+    - name: Select compatible preinstalled native Go without installation
+      run: python3 ../release-tools/.github/scripts/release_policy.py toolchain
+    - name: Require existing Linux build and display dependencies
+      run: |
+        set -euo pipefail
+        for tool in gcc pkg-config xvfb-run xauth; do
+          command -v "$tool" || { echo "Missing preinstalled $tool; installation is not authorized"; exit 1; }
+        done
+        pkg-config --print-errors --exists alsa gl x11 xcursor xi xinerama xrandr xxf86vm
+      if: runner.os == 'Linux'
+    - name: Download Go modules
+      run: go mod download
+    - name: Run tests
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          xvfb-run -a go test -v -count=1 -timeout=5m ./...
+        else
+          go test -v -count=1 -timeout=5m ./...
+        fi
+    - name: Prepare validated build metadata
+      id: version
+      env:
+        NORMALIZED_VERSION: "${{ needs.prepare.outputs.version }}"
+        COMMON_BUILD_DATE: "${{ needs.prepare.outputs.build_date }}"
+      run: |
+        set -euo pipefail
+        test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+        commit="$(git rev-parse --short HEAD)"
+        {
+          echo "version=$NORMALIZED_VERSION"
+          echo "commit=$commit"
+          echo "build_date=$COMMON_BUILD_DATE"
+        } >> "$GITHUB_OUTPUT"
+    - name: Build binary
+      shell: bash
+      env:
+        BINARY: "${{ matrix.binary }}"
+        BUILD_DATE: "${{ steps.version.outputs.build_date }}"
+        COMMIT: "${{ steps.version.outputs.commit }}"
+        VERSION: "${{ steps.version.outputs.version }}"
+      run: |
+        mkdir -p dist package
+        metadata_package="github.com/scottdensmore/asteroids/internal/game"
+        ldflags="-s -w"
+        ldflags+=" -X $metadata_package.version=$VERSION"
+        ldflags+=" -X $metadata_package.commit=$COMMIT"
+        ldflags+=" -X $metadata_package.buildDate=$BUILD_DATE"
+        go build -trimpath \
+          -ldflags="$ldflags" \
+          -o "dist/$BINARY" ./cmd/asteroids
+    - name: Package Unix binary
+      if: runner.os != 'Windows'
+      shell: bash
+      env:
+        BINARY: "${{ matrix.binary }}"
+        PACKAGE: "${{ matrix.package }}"
+        VERSION: "${{ steps.version.outputs.version }}"
+      run: tar -C dist -czf "package/$PACKAGE-$VERSION.tar.gz" "$BINARY"
+    - name: Package Windows binary
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        BINARY: "${{ matrix.binary }}"
+        PACKAGE: "${{ matrix.package }}"
+        VERSION: "${{ steps.version.outputs.version }}"
+      run: Compress-Archive -Path "dist/$env:BINARY" -DestinationPath "package/$env:PACKAGE-$env:VERSION.zip"
+    - name: Record package provenance and checksums
+      env:
+        PLATFORM: "${{ matrix.name }}"
+      run: python3 ../release-tools/.github/scripts/release_policy.py manifest --platform
+        "$PLATFORM" --directory package
+    - name: Preserve source and dependency locks
+      run: git diff --exit-code
+    - name: Upload package
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: "${{ matrix.package }}"
+        path: source/package/*
+        if-no-files-found: error
+        retention-days: 3
+    needs:
+    - prepare
+    defaults:
+      run:
+        working-directory: source
         shell: bash
-        run: |
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            xvfb-run -a go test ./...
-          else
-            go test ./...
-          fi
-
-      - name: Prepare version
-        id: version
-        shell: bash
-        env:
-          INPUT_TAG: ${{ inputs.tag }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            tag="pr-$PR_NUMBER"
-          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            tag="$INPUT_TAG"
-          else
-            tag="$GITHUB_REF_NAME"
-          fi
-
-          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
-            semver_pattern='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-            if [[ ! "$tag" =~ $semver_pattern ]]; then
-              echo "Release tag must be v followed by a valid Semantic Version (for example, v1.2.3)."
-              exit 1
-            fi
-          fi
-
-          version="${tag#v}"
-          commit="$(git rev-parse --short HEAD)"
-          build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
-          {
-            echo "tag=$tag"
-            echo "version=$version"
-            echo "commit=$commit"
-            echo "build_date=$build_date"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Build binary
-        shell: bash
-        env:
-          BINARY: ${{ matrix.binary }}
-          BUILD_DATE: ${{ steps.version.outputs.build_date }}
-          COMMIT: ${{ steps.version.outputs.commit }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          mkdir -p dist package
-          metadata_package="github.com/scottdensmore/asteroids/internal/game"
-          ldflags="-s -w"
-          ldflags+=" -X $metadata_package.version=$VERSION"
-          ldflags+=" -X $metadata_package.commit=$COMMIT"
-          ldflags+=" -X $metadata_package.buildDate=$BUILD_DATE"
-          go build -trimpath \
-            -ldflags="$ldflags" \
-            -o "dist/$BINARY" ./cmd/asteroids
-
-      - name: Package Unix binary
-        if: runner.os != 'Windows'
-        shell: bash
-        env:
-          BINARY: ${{ matrix.binary }}
-          PACKAGE: ${{ matrix.package }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: tar -C dist -czf "package/$PACKAGE-$VERSION.tar.gz" "$BINARY"
-
-      - name: Package Windows binary
-        if: runner.os == 'Windows'
-        shell: pwsh
-        env:
-          BINARY: ${{ matrix.binary }}
-          PACKAGE: ${{ matrix.package }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: Compress-Archive -Path "dist/$env:BINARY" -DestinationPath "package/$env:PACKAGE-$env:VERSION.zip"
-
-      - name: Upload package
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ${{ matrix.package }}
-          path: package/*
-          if-no-files-found: error
-          retention-days: 3
-
   release:
-    name: Create GitHub release
-    if: github.event_name != 'pull_request'
+    name: Create validated tag and GitHub Release
+    if: "${{ github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}',
+      github.event.repository.default_branch) }}"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs:
-      - quality
-      - build
+    - prepare
+    - quality
+    - build
     permissions:
       contents: write
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Download release packages
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          path: release-assets
-          merge-multiple: true
-
-      - name: Ensure release tag exists
-        env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-        run: |
-          if git show-ref --tags --verify --quiet "refs/tags/$RELEASE_TAG"; then
-            exit 0
-          fi
-
-          git tag "$RELEASE_TAG" "$GITHUB_SHA"
-          git push origin "refs/tags/$RELEASE_TAG"
-
-      - name: Create or update release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-        run: |
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
-          else
-            gh release create "$RELEASE_TAG" release-assets/* \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$GITHUB_SHA" \
-              --title "$RELEASE_TAG" \
-              --generate-notes
-          fi
+    - name: Check out trusted release automation
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        ref: "${{ github.sha }}"
+        path: release-tools
+        persist-credentials: false
+        fetch-tags: false
+    - name: Download only this run's platform packages
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      with:
+        pattern: asteroids-*
+        path: release-assets
+        merge-multiple: true
+    - name: Verify packages, create a new tag/draft, verify uploaded assets, then
+        publish
+      env:
+        GH_TOKEN: "${{ github.token }}"
+        RELEASE_PREPARE_RESULT: "${{ needs.prepare.result }}"
+        RELEASE_QUALITY_RESULT: "${{ needs.quality.result }}"
+        RELEASE_BUILD_RESULT: "${{ needs.build.result }}"
+      run: python3 release-tools/.github/scripts/release_policy.py publish --directory
+        release-assets
+'on':
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: New semantic version tag, for example v1.2.3 (must not exist)
+        required: true
+        type: string
+      source_sha:
+        description: Full commit SHA of the default-branch commit selected for dispatch
+        required: true
+        type: string
+env:
+  DEFAULT_BRANCH: "${{ github.event.repository.default_branch }}"
+  VERSION_TAG: "${{ inputs.tag }}"
+  SOURCE_SHA: "${{ inputs.source_sha }}"
+  GOTOOLCHAIN: local
+  GOFLAGS: "-mod=readonly"
+  GOENV: 'off'
