@@ -40,7 +40,7 @@ go test ./...
 | `ACKNOWLEDGMENTS.md` | Inspiration, foundational tools, and automated assistance |
 | `LICENSE` | MIT license terms |
 | `.github/workflows/ci.yml` | Formatting, vet, build, and tests without publishing |
-| `.github/workflows/release.yml` | Build, test, package, and release pipeline |
+| `.github/workflows/package-artifacts.yml` | PR/manual build, test, and artifact packaging; no release publication |
 
 ## Build and test CI
 

@@ -1,24 +1,15 @@
-name: Build and Release
+name: Build and package artifacts
 
 on:
   pull_request:
-    branches:
-      - main
-  push:
-    tags:
-      - "v*"
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag to create, for example v1.0.0"
-        required: true
-        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -128,35 +119,21 @@ jobs:
             go test ./...
           fi
 
-      - name: Prepare version
+      - name: Prepare artifact build metadata
         id: version
         shell: bash
         env:
-          INPUT_TAG: ${{ inputs.tag }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            tag="pr-$PR_NUMBER"
-          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            tag="$INPUT_TAG"
-          else
-            tag="$GITHUB_REF_NAME"
-          fi
-
-          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
-            semver_pattern='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-            if [[ ! "$tag" =~ $semver_pattern ]]; then
-              echo "Release tag must be v followed by a valid Semantic Version (for example, v1.2.3)."
-              exit 1
-            fi
-          fi
-
-          version="${tag#v}"
+          set -euo pipefail
           commit="$(git rev-parse --short HEAD)"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            version="pr-$PR_NUMBER"
+          else
+            version="dev-$commit"
+          fi
           build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
           {
-            echo "tag=$tag"
             echo "version=$version"
             echo "commit=$commit"
             echo "build_date=$build_date"
@@ -205,52 +182,3 @@ jobs:
           path: package/*
           if-no-files-found: error
           retention-days: 3
-
-  release:
-    name: Create GitHub release
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs:
-      - quality
-      - build
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Download release packages
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          path: release-assets
-          merge-multiple: true
-
-      - name: Ensure release tag exists
-        env:
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-        run: |
-          if git show-ref --tags --verify --quiet "refs/tags/$RELEASE_TAG"; then
-            exit 0
-          fi
-
-          git tag "$RELEASE_TAG" "$GITHUB_SHA"
-          git push origin "refs/tags/$RELEASE_TAG"
-
-      - name: Create or update release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-        run: |
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
-          else
-            gh release create "$RELEASE_TAG" release-assets/* \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$GITHUB_SHA" \
-              --title "$RELEASE_TAG" \
-              --generate-notes
-          fi
