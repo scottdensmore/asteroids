@@ -1,20 +1,22 @@
 version: 2
-
 updates:
-  - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: monthly
-    groups:
-      go-dependencies:
-        patterns:
-          - "*"
 
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "gomod"
+    directory: "/"
     schedule:
-      interval: monthly
+      interval: "weekly"
+    open-pull-requests-limit: 3
     groups:
-      github-actions:
-        patterns:
-          - "*"
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
