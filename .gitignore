@@ -13,3 +13,31 @@
 
 # Standard ignore for Go modules
 /vendor/
+
+# Build directories and Go workspace
+/bin/
+/dist/
+coverage.*
+go.work
+go.work.sum
+
+# OS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
